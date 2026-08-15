@@ -503,8 +503,6 @@ This project is released under the MIT License. See [`LICENSE`](LICENSE).
 
 ## Author
 
-**[Your Name]**
+**Vu Xuan Thien**
 
-Computer Engineering / Embedded Systems
-
-> Replace `[Your Name]` with the name you want displayed publicly on GitHub and LinkedIn.
+Computer Engineering / Integrated Circuit Design / Embedded Systems
