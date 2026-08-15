@@ -1,0 +1,32 @@
+# Arduino / build artifacts
+*.hex
+*.elf
+*.eep
+*.map
+*.bin
+*.o
+
+# IDE metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary / backup files
+*.tmp
+*.bak
+*~
+
+# Local secrets / credentials
+.env
+*.secret
+credentials.*
+secrets.*
+
+# Generated documentation
+site/
