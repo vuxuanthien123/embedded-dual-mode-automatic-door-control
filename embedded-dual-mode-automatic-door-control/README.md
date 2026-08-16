@@ -1,1053 +1,568 @@
-# Embedded Dual-Mode Automatic Door Control and Security System
+# Embedded Automatic Door Control and Security System
 
-An Arduino UNO R3-based embedded control system that combines **automatic door operation, password-protected access, obstacle handling, and operating-mode management**.
+A small embedded-system project built with an **Arduino UNO R3** to control a motorized door in two operating modes:
 
-The project is designed as a small but complete embedded-control system: sensors provide information about the physical environment, the keypad provides human commands, the firmware maintains explicit system states, and the motor driver converts those decisions into physical door movement.
+* **Auto Mode** — the door opens automatically when an object is detected.
+* **Security Mode** — opening the door requires password authentication.
 
-> **The main idea:** the door is not simply "a motor that opens and closes".  
-> It is a state-driven system whose behavior changes according to the operating mode, user intent, authentication result, sensor conditions, and physical position of the door.
+The system uses an ultrasonic sensor for object detection, mechanical limit switches for door-position feedback, and a TB6612FNG motor driver for DC motor control. A 16×2 I2C LCD and a passive buzzer provide basic user feedback.
 
----
-
-## 1. What This Project Does
-
-The system has two operating modes:
-
-```text
-                    EMBEDDED DOOR SYSTEM
-                            |
-                +-----------+-----------+
-                |                       |
-                v                       v
-           AUTO MODE              SECURITY MODE
-                |                       |
-        HC-SR04 detection        Keypad + password
-                |                       |
-                v                       v
-        Automatic operation      Controlled access
-                |                       |
-                +-----------+-----------+
-                            |
-                            v
-                     Door controller
-                            |
-                            v
-                      DC motor + door
-```
-
-### Auto Mode
-
-Auto Mode is intended for hands-free operation.
-
-- The HC-SR04 detects an object approaching the door.
-- A closed door opens automatically when an object is detected within the configured range.
-- The door remains open while an object is detected.
-- After **2 seconds without detection**, the door begins normal-speed closing.
-- If an obstacle is detected while the door is closing, the controller:
-  1. immediately brakes the motor,
-  2. enters an emergency-stopped state,
-  3. commands the door to reopen.
-
-This mode prioritizes automatic interaction and obstacle response.
-
-### Security Mode
-
-Security Mode changes the door from an automatic-access system into a password-controlled system.
-
-- `B` requests door access.
-- `C` requests an operating-mode change.
-- Password authentication is required for both operations.
-- A correct password can open a fully closed door.
-- Four failed password attempts activate an alarm/lockdown sequence.
-- When the door is open, the HC-SR04 can trigger closing when an object is detected.
-- If no object is detected for **10 seconds**, the system begins slow closing with a periodic audible warning.
-- Switching between Auto Mode and Security Mode requires an additional confirmation step.
+This project is developed as an **academic embedded-systems prototype**, so the design focuses on understanding the interaction between sensors, actuators, the microcontroller, and firmware state logic rather than on production-level safety or security.
 
 ---
 
-## 2. System Concept
+## 1. System Overview
 
-The system is built around one central idea:
-
-> **Separate the physical state of the door from the reason the controller is operating.**
-
-The firmware therefore does not use one giant state variable containing every possible combination.
-
-Instead, it models several independent dimensions:
-
-```text
-SYSTEM_MODE
-    What operating policy is active?
-
-KEYPAD_ACTION
-    What is the keypad currently doing?
-
-ENTERING_PURPOSE
-    Why is authentication being requested?
-
-DOOR_BEHAVIOR
-    What is the physical door currently doing?
-
-MOTOR_DIRECTION
-    What motor command is being applied?
-
-LIMIT_SWITCH_STATE
-    What is the electrical state of a limit switch?
-```
-
-For example, the controller can conceptually be in:
-
-```text
-SECURITY_MODE
-+
-PASSWORD_ENTERING
-+
-OPEN_DOOR
-+
-CLOSED_COMPLETELY
-```
-
-These states answer four different questions instead of forcing everything into one large state machine.
-
-This separation is the central architectural idea behind the firmware.
-
----
-
-## 3. System Architecture
-
-![System Flowchart](docs/images/system-flowchart.png)
-
-The overall runtime flow is:
-
-```text
-                       +----------------+
-                       |  Arduino UNO   |
-                       |   Main Loop    |
-                       +-------+--------+
-                               |
-                       +-------v--------+
-                       |  System Mode   |
-                       +-------+--------+
-                               |
-                 +-------------+-------------+
-                 |                           |
-                 v                           v
-             AUTO MODE                SECURITY MODE
-                 |                           |
-          HC-SR04 sensing             Keypad / Password
-                 |                           |
-                 +-------------+-------------+
-                               |
-                               v
-                        Door behavior
-                               |
-                +--------------+--------------+
-                |              |              |
-                v              v              v
-           Limit switches   Motor driver   LCD/Buzzer
-                               |
-                               v
-                            DC Motor
-```
-
-The Arduino UNO R3 is the controller. It receives inputs from the keypad, ultrasonic sensor, and limit switches; processes them according to the current operating mode and door state; and drives the motor, LCD, and buzzer.
-
----
-
-## 4. Hardware Architecture
-
-![Hardware Block Diagram](docs/images/hardware-block-diagram.png)
+The main controller is an Arduino UNO R3.
 
 ### Main components
 
-| Component | Role |
-|---|---|
-| Arduino UNO R3 | Main embedded controller |
-| 4×4 Matrix Keypad | User commands and password entry |
-| HC-SR04 | Object/obstacle detection |
-| 2× Mechanical Limit Switches | Fully-open and fully-closed position feedback |
-| TB6612FNG | Dual H-bridge motor driver |
-| DC Motor | Door actuator |
-| 16×2 I2C LCD | User interface and system status |
-| Passive Buzzer | Key feedback, authentication feedback, warning, and alarm |
-| 9 V / 3 A Adapter | External power source |
-| LM2596 Buck Converter | Converts the adapter output to the 5 V system supply |
+| Component                    | Function                                      |
+| ---------------------------- | --------------------------------------------- |
+| Arduino UNO R3               | Main controller                               |
+| 4×4 matrix keypad            | User input and password entry                 |
+| HC-SR04                      | Object detection                              |
+| TB6612FNG                    | DC motor driver                               |
+| DC motor                     | Door actuation                                |
+| 2× mechanical limit switches | Fully-open and fully-closed position feedback |
+| 16×2 I2C LCD                 | Display system status and messages            |
+| Passive buzzer               | Key feedback, warning, and alarm              |
+| 9 V / 3 A adapter            | Main power source                             |
+| LM2596 buck converter        | Converts 9 V input to a 5 V system supply     |
 
-### Power distribution
+The firmware is written in Arduino C++ using the `Keypad` and `LiquidCrystal_I2C` libraries.
 
-![Power Architecture](docs/images/power-architecture.png)
+---
 
-The power design uses:
+## 2. Hardware Architecture
+
+The system is divided into three main parts:
+
+```text
+INPUT DEVICES  →  CONTROLLER  →  OUTPUT DEVICES
+                     |
+                 Arduino UNO
+```
+
+### Input devices
+
+* 4×4 matrix keypad
+* HC-SR04 ultrasonic sensor
+* Open-position limit switch
+* Closed-position limit switch
+
+### Controller
+
+* Arduino UNO R3
+
+The Arduino reads the sensors and keypad, determines the current system and door states, and generates the required control signals.
+
+### Output devices
+
+* TB6612FNG motor driver
+* DC motor
+* 16×2 I2C LCD
+* Passive buzzer
+
+The motor driver is controlled by two direction signals and one PWM speed signal.
+
+---
+
+## 3. Power Supply
+
+The system uses a **9 V / 3 A external adapter** as the main power source.
 
 ```text
 9 V / 3 A Adapter
-        |
-        v
-LM2596 Buck Converter
-        |
-        v
-       5 V
-        |
-        +-------- Power Rail 1
-        |
-        +-------- Power Rail 2
+        │
+        ▼
+   LM2596 Buck
+     Converter
+        │
+        ▼
+      5 V
+   ┌────┴────┐
+   ▼         ▼
+Rail 1     Rail 2
+  5 V        5 V
 ```
 
-The two rails represent **two physical 5 V distribution paths**, not two different voltage levels. They share the same 5 V source and common ground.
+The LM2596 converts the 9 V input to approximately 5 V.
 
-This arrangement keeps the wiring organized while allowing the controller and peripheral sections to be powered from the same regulated supply.
+The project diagram shows two 5 V power rails. These are **two distribution rails from the same LM2596 output**, not two independent voltage levels.
+
+* **Power rail 1** is mainly used for the TB6612FNG motor-driver supply.
+* **Power rail 2** supplies the Arduino-side peripherals such as the HC-SR04, LCD, and buzzer.
+
+The grounds are shared between the circuits.
+
+> The actual motor supply in this prototype is also derived from the 5 V rail. The suitability of this supply depends on the selected DC motor and its current requirements.
 
 ---
 
-## 5. Hardware Interfaces
+## 4. Hardware Block Diagram
 
-### Arduino UNO R3
+![Hardware block diagram](hardware-block-diagram.png)
 
-The Arduino is responsible for:
+The block diagram shows the connection between the input devices, Arduino UNO, motor driver, and output devices.
 
-- reading the keypad,
-- measuring the HC-SR04,
-- reading the limit switches,
-- controlling the TB6612FNG,
-- driving the buzzer,
-- updating the LCD,
-- maintaining the system state,
-- executing the main control loop.
+The Arduino communicates with:
 
-### Keypad
-
-The 4×4 keypad is used for:
-
-```text
-0–9  -> password digits
-
-A    -> delete the last password digit
-D    -> submit password
-
-B    -> request door access in Security Mode
-C    -> request system-mode change
-
-*    -> confirm mode change
-#    -> cancel mode change
-```
-
-### HC-SR04
-
-The ultrasonic sensor is used for object detection.
-
-The firmware considers an object detected when the measured distance is:
-
-```text
-0 cm < distance < 17 cm
-```
-
-The sensor is primarily responsible for automatic operation in Auto Mode and for door-closing decisions while the door is open in Security Mode.
-
-### Limit switches
-
-Two mechanical switches provide physical end-position feedback:
-
-```text
-Open limit switch
-        |
-        v
-Fully-open door position
-
-Close limit switch
-        |
-        v
-Fully-closed door position
-```
-
-The switches use the Arduino's internal pull-up resistors:
-
-```text
-Switch pressed    -> LOW
-Switch released   -> HIGH
-```
-
-### TB6612FNG
-
-The motor driver receives logical direction and PWM commands from the Arduino.
-
-The firmware uses three logical motor commands:
-
-```text
-CLOCK_WISE
-COUNTER_CLOCK_WISE
-BRAKE
-```
-
-Normal and slow movement are distinguished by PWM:
-
-```text
-Normal speed  -> PWM 250
-Slow closing  -> PWM 90
-Brake         -> PWM 0
-```
-
-The actual clockwise/counter-clockwise physical direction depends on the motor's mechanical installation.
-
-### LCD
-
-The 16×2 I2C LCD provides:
-
-- current operating mode,
-- password prompts,
-- access results,
-- mode-switch confirmation,
-- alarm status,
-- activation messages.
-
-### Passive buzzer
-
-The buzzer provides several forms of feedback:
-
-```text
-Short beep
-    -> keypad feedback
-
-Positive tone
-    -> successful authentication
-
-Three short beeps
-    -> failed authentication
-
-Alternating warning
-    -> slow closing
-
-Alarm tone
-    -> repeated authentication failure
-```
+* Keypad through digital I/O
+* HC-SR04 through `Trig` and `Echo`
+* Limit switches through digital inputs
+* TB6612FNG through direction and PWM control signals
+* LCD through I2C
+* Buzzer through a digital/PWM-capable output
 
 ---
 
-## 6. Software Architecture
+## 5. Arduino Pin Assignment
 
-The firmware is organized as a **state-oriented, single-loop embedded control system**.
+The current firmware uses the following Arduino UNO R3 pins.
 
-The main execution path is:
+| Arduino pin | Connected device    | Function              |
+| ----------- | ------------------- | --------------------- |
+| A0 / 14     | Keypad              | Row 1                 |
+| A1 / 15     | HC-SR04             | Trigger               |
+| A2 / 16     | HC-SR04             | Echo                  |
+| A3 / 17     | TB6612FNG           | Motor input 1         |
+| D2          | Keypad              | Column 3              |
+| D3          | Open limit switch   | Fully-open position   |
+| D4          | Closed limit switch | Fully-closed position |
+| D5          | TB6612FNG           | PWM motor speed       |
+| D6          | Passive buzzer      | Buzzer signal         |
+| D7          | Keypad              | Column 4              |
+| D8          | Keypad              | Row 4                 |
+| D9          | Keypad              | Row 3                 |
+| D10         | TB6612FNG           | Motor input 2         |
+| D11         | Keypad              | Column 2              |
+| D12         | Keypad              | Row 2                 |
+| D13         | Keypad              | Column 1              |
 
-```text
-setup()
-   |
-   v
-Initialize hardware
-   |
-   v
-loop()
-   |
-   +--> Display current mode
-   |
-   +--> Read keypad
-   |
-   +--> Check SYSTEM_MODE
-           |
-           +--> AUTO_MODE
-           |      |
-           |      v
-           |  processAutoMode()
-           |
-           +--> SECURITY_MODE
-                  |
-                  v
-              processSecurityMode()
+The LCD uses the Arduino I2C interface.
+
+The two limit switches use the Arduino's internal pull-up resistors:
+
+```cpp
+pinMode(doorOpenSwitch, INPUT_PULLUP);
+pinMode(doorCloseSwitch, INPUT_PULLUP);
 ```
 
-There is no RTOS and no multitasking framework. All control logic is executed cooperatively from the Arduino `loop()`.
+Therefore, a pressed switch is read as `LOW`.
 
 ---
 
-## 7. Door Behavioral Model
+## 6. Operating Modes
 
-The physical door is represented by:
+The firmware implements two operating modes.
 
-```text
-DOOR_BEHAVIOR
-├── CLOSED_COMPLETELY
-├── OPENING_NORMALLY
-├── OPENED_COMPLETELY
-├── CLOSING_NORMALLY
-├── CLOSING_SLOWLY
-└── EMERGENCY_STOPPED
-```
+### Auto Mode
 
-The basic movement cycle is:
+In Auto Mode, the HC-SR04 is used to detect an object near the door.
+
+Basic operation:
 
 ```text
-CLOSED_COMPLETELY
-        |
-        | open request
-        v
-OPENING_NORMALLY
-        |
-        | open limit reached
-        v
-OPENED_COMPLETELY
-        |
-        | close request
-        v
-CLOSING_NORMALLY
-        |
-        | close limit reached
-        v
-CLOSED_COMPLETELY
+Door closed
+     │
+     ▼
+Object detected?
+   │       │
+  No      Yes
+   │       │
+   │       ▼
+   │    Open door
+   │       │
+   │       ▼
+   │   Door fully open
+   │       │
+   │       ▼
+Object still detected?
+   │       │
+  Yes      No
+   │       │
+Reset      ▼
+timer   Wait 2 seconds
+           │
+           ▼
+       Close door
 ```
 
-Auto Mode adds the safety path:
+The configured detection distance is approximately **17 cm**.
 
-```text
-CLOSING_NORMALLY
-        |
-        | obstacle detected
-        v
-EMERGENCY_STOPPED
-        |
-        | reopen
-        v
-OPENING_NORMALLY
-```
+When the door is fully open:
 
-Security Mode adds:
+* The timer is reset while an object remains in the detection zone.
+* If no object is detected for **2 seconds**, the door starts closing.
 
-```text
-OPENED_COMPLETELY
-        |
-        | 10 s without object
-        v
-CLOSING_SLOWLY
-        |
-        | close limit reached
-        v
-CLOSED_COMPLETELY
-```
+During normal closing:
 
-The door's physical behavior is therefore independent from the reason that caused the movement.
+* If an object is detected, the motor is stopped.
+* The door is then commanded to open again.
+
+This provides a simple obstacle-response mechanism.
 
 ---
 
-## 8. User Interaction and Authentication
+### Security Mode
 
-Authentication is modeled separately from door movement.
+Security Mode requires password authentication for controlled door access.
 
-### Keypad states
+When the door is fully closed:
+
+* `B` requests door opening.
+* `C` requests a change of operating mode.
+* The user enters a four-digit password.
+* `D` submits the password.
+* `A` deletes the last entered digit.
+
+A successful password for door access opens the door.
+
+A successful password for a mode change is followed by an additional confirmation:
 
 ```text
-KEYPAD_ACTION
-├── KEYPRESS_AWAITING
-├── PASSWORD_ENTERING
-└── SWITCH_CONFIRMATION
+*  → Confirm
+#  → Cancel
+```
+
+The ultrasonic sensor is not continuously used for automatic opening while the door is closed in Security Mode.
+
+---
+
+## 7. Security Mode Door Closing
+
+After the door has been opened in Security Mode, the system monitors the ultrasonic sensor.
+
+If an object is detected, the door closes normally according to the current control logic.
+
+If no object is detected for **10 seconds**, the system starts a slow-closing procedure.
+
+During slow closing:
+
+* Motor PWM is reduced.
+* The buzzer produces a periodic warning.
+* The closed-position limit switch stops the motor when the door reaches the closed position.
+
+The warning pattern is approximately:
+
+```text
+BEEP → SILENCE → BEEP → SILENCE → ...
+```
+
+Each interval is approximately 500 ms.
+
+---
+
+## 8. Password and Alarm Logic
+
+The current firmware uses a four-digit password stored directly in the source code.
+
+```cpp
+const char defaultPassword[] = "1234";
+```
+
+The password is not encrypted or hashed.
+
+Failed authentication attempts produce an audible indication. After repeated failures, the alarm sequence is activated.
+
+The alarm:
+
+* Displays a system alarm message on the LCD.
+* Activates the buzzer.
+* Runs for approximately 10 seconds.
+* Temporarily represents a lockdown state.
+
+This is intended as a simple demonstration of authentication and alarm handling, not as a secure access-control implementation.
+
+---
+
+## 9. Firmware Structure
+
+Instead of implementing all behavior in one large routine, the firmware separates several concepts into enumerated states.
+
+### System mode
+
+```cpp
+enum SYSTEM_MODE {
+    AUTO_MODE,
+    SECURITY_MODE
+};
+```
+
+### Keypad interaction
+
+```cpp
+enum KEYPAD_ACTION {
+    KEYPRESS_AWAITING,
+    PASSWORD_ENTERING,
+    SWITCH_CONFIRMATION
+};
 ```
 
 ### Authentication purpose
 
-```text
-ENTERING_PURPOSE
-├── OPEN_DOOR
-├── SWITCH_SYSTEM_MODE
-└── NONE
+```cpp
+enum ENTERING_PURPOSE {
+    OPEN_DOOR,
+    SWITCH_SYSTEM_MODE,
+    NONE
+};
 ```
 
-The general authentication flow is:
+### Door behavior
 
-```text
-User command
-     |
-     v
-Request password
-     |
-     v
-PASSWORD_ENTERING
-     |
-     v
-Verify password
-     |
-     +----------+----------+
-     |                     |
-   Correct              Incorrect
-     |                     |
-     v                     v
-Perform request       Retry / alarm
+```cpp
+enum DOOR_BEHAVIOR {
+    OPENED_COMPLETELY,
+    OPENING_NORMALLY,
+    CLOSING_NORMALLY,
+    CLOSING_SLOWLY,
+    CLOSED_COMPLETELY,
+    EMERGENCY_STOPPED
+};
 ```
 
-For mode switching:
+This makes the main control logic easier to divide between Auto Mode and Security Mode.
 
-```text
-Password correct
-       |
-       v
-SWITCH_CONFIRMATION
-       |
-    +--+--+
-    |     |
-    *     #
-    |     |
- Confirm Cancel
-```
+The main loop selects the appropriate control routine:
 
-This prevents an accidental or incomplete authentication request from immediately changing the operating mode.
-
----
-
-## 9. Auto Mode Behavior
-
-The Auto Mode control philosophy is:
-
-> **Detect → open → remain open while occupied → close when clear → reopen if obstructed.**
-
-### Closed door
-
-```text
-CLOSED_COMPLETELY
-        |
-        +-- Object detected
-        |       |
-        |       v
-        |   OPENING_NORMALLY
-        |
-        +-- No object
-                |
-                v
-             remain closed
-```
-
-### Open door
-
-When the door reaches the fully-open limit:
-
-```text
-OPENED_COMPLETELY
-        |
-        +-- Object detected
-        |       |
-        |       v
-        |   reset open timer
-        |
-        +-- No object for 2 s
-                |
-                v
-        CLOSING_NORMALLY
-```
-
-### Obstacle during closing
-
-```text
-CLOSING_NORMALLY
-        |
-        | obstacle detected
-        v
-EMERGENCY_STOPPED
-        |
-        v
-OPENING_NORMALLY
-```
-
-This is the core safety behavior of Auto Mode.
-
----
-
-## 10. Security Mode Behavior
-
-Security Mode changes the control philosophy from automatic access to authenticated access.
-
-### Door access
-
-```text
-Door closed
-    |
-    v
-Press B
-    |
-    v
-Enter password
-    |
-    +-- Correct -> open door
-    |
-    +-- Incorrect -> retry
-                    |
-                    +-- 4th failure -> alarm
-```
-
-### Mode switching
-
-```text
-Press C
-   |
-   v
-Enter password
-   |
-   +-- Incorrect -> retry
-   |
-   +-- Correct
-         |
-         v
-Confirm switch
-     |
-   +---+---+
-   |       |
-   *       #
-   |       |
- Switch   Cancel
-```
-
-A successful mode switch also synchronizes ultrasonic sensing with the selected operating mode.
-
----
-
-## 11. Security Mode Closing Strategy
-
-Security Mode uses a different closing policy from Auto Mode.
-
-When the door is fully open:
-
-```text
-                    OPENED_COMPLETELY
-                           |
-                  +--------+--------+
-                  |                 |
-           Object detected     No object
-                  |                 |
-                  v                 v
-         Close normally       Wait 10 seconds
-                                    |
-                                    v
-                           Close slowly + warning
-```
-
-Slow closing uses:
-
-```text
-Motor PWM = 90
-
-Buzzer:
-    500 ms ON
-    500 ms OFF
-    repeated
-```
-
-This creates an audible warning during the slow-closing phase.
-
----
-
-## 12. Authentication Failure Handling
-
-The controller counts password attempts.
-
-```text
-Incorrect password
-       |
-       v
-attempts < 4 ?
-    /       \
-  yes        no
-   |          |
-   v          v
-Retry       Alarm
-              |
-              v
-          Lockdown sequence
-```
-
-The alarm sequence runs for approximately 10 seconds and uses the LCD and buzzer to indicate the security event.
-
-The attempt counter is reset after a successful authentication or after the alarm sequence.
-
----
-
-## 13. Timing Behavior
-
-The important timing parameters currently implemented in the firmware are:
-
-| Parameter | Value | Purpose |
-|---|---:|---|
-| Auto Mode absence timeout | 2 s | Start normal closing |
-| Security Mode absence timeout | 10 s | Start slow closing |
-| Slow-closing buzzer ON | 500 ms | Warning interval |
-| Slow-closing buzzer OFF | 500 ms | Warning interval |
-| Object detection range | < 17 cm | HC-SR04 detection threshold |
-| Normal motor PWM | 250 | Normal door movement |
-| Slow motor PWM | 90 | Slow closing |
-| Password attempts | 4 | Trigger alarm after repeated failures |
-
-The continuous door-control timing uses `millis()`.
-
-Some user-interface, feedback, and alarm sequences use `delay()`, which temporarily blocks the main loop.
-
----
-
-## 14. Initial State
-
-After startup, the firmware initializes the logical state as:
-
-```text
-SYSTEM_MODE       = AUTO_MODE
-KEYPAD_ACTION     = KEYPRESS_AWAITING
-ENTERING_PURPOSE  = NONE
-DOOR_BEHAVIOR     = CLOSED_COMPLETELY
-isUltrasonicEnabled = true
-```
-
-The software therefore assumes that the physical door is fully closed when the controller starts.
-
-This is an important prototype assumption: a production system should verify the actual physical position during startup rather than relying only on software state.
-
----
-
-## 15. Pin Mapping
-
-### Keypad
-
-| Signal | Arduino pin |
-|---|---:|
-| Row 1 | A0 / D14 |
-| Row 2 | D12 |
-| Row 3 | D9 |
-| Row 4 | D8 |
-| Column 1 | D13 |
-| Column 2 | D11 |
-| Column 3 | D2 |
-| Column 4 | D7 |
-
-### Sensors and actuators
-
-| Device | Signal | Arduino pin |
-|---|---|---:|
-| HC-SR04 | TRIG | A1 / D15 |
-| HC-SR04 | ECHO | A2 / D16 |
-| Open limit switch | Input | D3 |
-| Close limit switch | Input | D4 |
-| Passive buzzer | Signal | D6 |
-| TB6612FNG | Motor input 1 | A3 / D17 |
-| TB6612FNG | Motor input 2 | D10 |
-| TB6612FNG | PWM / speed | D5 |
-| LCD 1602 I2C | SDA | A4 |
-| LCD 1602 I2C | SCL | A5 |
-
----
-
-## 16. Firmware Structure
-
-The firmware is currently implemented as a single Arduino sketch.
-
-The main logical responsibilities are:
-
-| Function | Responsibility |
-|---|---|
-| `loop()` | Main runtime dispatcher |
-| `processAutoMode()` | Auto Mode control logic |
-| `processSecurityMode()` | Security Mode control logic |
-| `openDoorNormally()` | Normal-speed opening |
-| `closeDoorNormally()` | Normal-speed closing |
-| `closeDoorSlowly()` | Slow closing and warning |
-| `emergencyStop()` | Motor braking and emergency state |
-| `setMotorDirection()` | Motor-driver abstraction |
-| `isObjectDetected()` | HC-SR04 measurement |
-| `enterPassword()` | Keypad password entry |
-| `verifyPassword()` | Authentication |
-| `confirmModeSwitch()` | Mode-switch confirmation |
-| `activateAlarm()` | Failed-authentication alarm |
-| `displaySystemMode()` | LCD mode display |
-| `keyPressFeedback()` | Keypad feedback |
-
-The code therefore follows a simple hierarchy:
-
-```text
-loop()
- |
- +-- System Mode
-      |
-      +-- processAutoMode()
-      |      |
-      |      +-- sensor decisions
-      |      +-- door state
-      |      +-- motor commands
-      |
-      +-- processSecurityMode()
-             |
-             +-- keypad decisions
-             +-- authentication
-             +-- door state
-             +-- motor commands
+```cpp
+if (systemMode == SECURITY_MODE) {
+    processSecurityMode(key);
+}
+else {
+    processAutoMode(key);
+}
 ```
 
 ---
 
-## 17. Why the Architecture Is Organized This Way
+## 10. Main Control Functions
 
-A single monolithic state machine could describe every combination of operating mode, authentication, keypad interaction, and door movement.
+Some of the main firmware functions are:
 
-However, that would quickly produce states such as:
+| Function                | Purpose                            |
+| ----------------------- | ---------------------------------- |
+| `processAutoMode()`     | Handles Auto Mode behavior         |
+| `processSecurityMode()` | Handles Security Mode behavior     |
+| `isObjectDetected()`    | Measures distance using HC-SR04    |
+| `openDoorNormally()`    | Starts or continues normal opening |
+| `closeDoorNormally()`   | Starts or continues normal closing |
+| `closeDoorSlowly()`     | Performs slow closing with warning |
+| `emergencyStop()`       | Stops motor motion                 |
+| `verifyPassword()`      | Checks the entered password        |
+| `activateAlarm()`       | Runs the alarm sequence            |
+| `confirmModeSwitch()`   | Handles mode-switch confirmation   |
 
-```text
-AUTO_CLOSED
-AUTO_OPENING
-AUTO_OPENED
-AUTO_CLOSING
-SECURITY_CLOSED
-SECURITY_OPENING
-SECURITY_OPENED
-SECURITY_CLOSING
-SECURITY_PASSWORD_ENTRY
-SECURITY_MODE_CONFIRMATION
-...
-```
+---
 
-This approach mixes concepts that are logically different.
+## 11. Door Position Feedback
 
-The current architecture instead separates them:
-
-```text
-SYSTEM_MODE
-      +
-KEYPAD_ACTION
-      +
-ENTERING_PURPOSE
-      +
-DOOR_BEHAVIOR
-      +
-Runtime flags
-```
-
-This makes the firmware easier to reason about:
+Two mechanical limit switches provide feedback about the door's end positions:
 
 ```text
-What policy is active?
-        -> SYSTEM_MODE
-
-What is the user interface doing?
-        -> KEYPAD_ACTION
-
-Why are we authenticating?
-        -> ENTERING_PURPOSE
-
-What is the physical door doing?
-        -> DOOR_BEHAVIOR
+                 Door movement
+                     │
+        ┌────────────┴────────────┐
+        ▼                         ▼
+  Open limit switch        Close limit switch
+        │                         │
+        └────────── Arduino ──────┘
 ```
 
-This is the main software-design principle of the project.
+The switches allow the firmware to determine when the door has reached:
+
+* Fully open
+* Fully closed
+
+The Arduino uses `INPUT_PULLUP`, so the corresponding input becomes `LOW` when the switch is pressed.
+
+This prevents the motor from continuing to run after the door reaches an end position.
+
+---
+
+## 12. System Flowchart
+
+![System flowchart](system-flowchart.png)
+
+The flowchart describes the main behavior of the firmware, including:
+
+* Initial system startup
+* Mode selection
+* Auto Mode object detection
+* Door opening and closing
+* Obstacle handling
+* Security Mode password entry
+* Failed authentication
+* Alarm activation
+* Door access
+* Operating-mode switching
+
+The implementation is based on repeated execution of the Arduino `loop()` function rather than a separate real-time operating system.
+
+---
+
+## 13. Power Architecture
+
+![Power architecture](power-architecture.png)
+
+The power architecture separates the physical distribution of the 5 V supply into two rails.
+
+### Power rail 1
+
+Used primarily for the motor-driver side:
+
+```text
+LM2596 5 V
+    │
+    ▼
+Power rail 1
+    │
+    └── TB6612FNG VM
+```
+
+### Power rail 2
+
+Used for the controller and peripheral devices:
+
+```text
+LM2596 5 V
+    │
+    ▼
+Power rail 2
+    ├── HC-SR04
+    ├── LCD
+    ├── Passive buzzer
+    └── Arduino-side circuits
+```
+
+Both rails originate from the same LM2596 output and share the system ground.
+
+---
+
+## 14. Libraries
+
+The firmware currently uses:
+
+```cpp
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+```
+
+These libraries are used for:
+
+* `LiquidCrystal_I2C` — communication with the 16×2 I2C LCD.
+* `Keypad` — scanning the 4×4 matrix keypad.
+
+---
+
+## 15. Running the Project
+
+### Hardware
+
+Connect the components according to the hardware block diagram and verify the following before powering the system:
+
+1. The LM2596 output is adjusted to approximately 5 V.
+2. All circuit grounds are connected correctly.
+3. The limit switches are connected according to the `INPUT_PULLUP` configuration.
+4. The motor driver receives the required supply voltage.
+5. The motor current is within the capability of the power supply and motor driver.
+6. The motor direction matches the physical opening and closing mechanism.
+
+### Firmware
+
+1. Open the `.ino` file in Arduino IDE.
+2. Install the required libraries.
+3. Select **Arduino UNO** as the board.
+4. Select the correct serial port.
+5. Upload the firmware.
+6. Test the limit switches before running continuous motor operation.
+
+---
+
+## 16. Keypad Layout
+
+The keypad is configured as follows:
+
+```text
+┌───┬───┬───┬───┐
+│ 1 │ 2 │ 3 │ A │
+├───┼───┼───┼───┤
+│ 4 │ 5 │ 6 │ B │
+├───┼───┼───┼───┤
+│ 7 │ 8 │ 9 │ C │
+├───┼───┼───┼───┤
+│ * │ 0 │ # │ D │
+└───┴───┴───┴───┘
+```
+
+Key functions:
+
+| Key   | Function                              |
+| ----- | ------------------------------------- |
+| `0–9` | Enter password digits                 |
+| `A`   | Delete last password digit            |
+| `B`   | Request door opening in Security Mode |
+| `C`   | Request operating-mode switch         |
+| `D`   | Submit password                       |
+| `*`   | Confirm mode switch                   |
+| `#`   | Cancel mode switch                    |
+
+---
+
+## 17. Current Limitations
+
+This project is a prototype for studying embedded control and does not provide the safety or security features expected from a real automatic door.
+
+Some current limitations are:
+
+* The password is stored directly in the firmware.
+* There is no cryptographic authentication.
+* The HC-SR04 is used as the main obstacle-detection sensor.
+* There is no independent hardware emergency-stop circuit.
+* The motor power system is simplified for the prototype.
+* The firmware uses blocking functions such as `delay()` and `pulseIn()`.
+* The system does not include a dedicated real-time operating system.
+* Mechanical and electrical protection depends on the prototype hardware.
+
+These limitations are acceptable for a student project, but they would need to be addressed before using a similar design in a real access-control or safety-critical application.
 
 ---
 
 ## 18. Project Structure
 
-A minimal repository structure is intentionally used:
+The current project is intentionally kept relatively small:
 
 ```text
-embedded-dual-mode-automatic-door/
-│
-├── .github/
-│
-├── docs/
-│   └── images/
-│       ├── power-architecture.png
-│       ├── hardware-block-diagram.png
-│       └── system-flowchart.png
-│
-├── firmware/
-│   └── embedded_dual_mode_automatic_door/
-│       └── embedded_dual_mode_automatic_door.ino
-│
-├── media/
-│
-├── .gitignore
-├── LICENSE
-└── README.md
+project/
+├── Modified_edition.ino
+├── README.md
+├── hardware-block-diagram.png
+├── power-architecture.png
+└── system-flowchart.png
 ```
 
-The README is intentionally the primary documentation entry point. The diagrams in `docs/images/` provide visual detail without requiring separate architecture documents.
+The firmware is currently contained in a single Arduino `.ino` file because the project is small enough that splitting it into multiple source modules is not necessary yet.
 
 ---
 
-## 19. Limitations and Engineering Notes
+## 19. Project Purpose
 
-This project is an **academic/engineering prototype**, not a certified industrial or access-control product.
+The main purpose of this project is to practice the design of a small embedded control system by combining:
 
-### Security
+* Digital input handling
+* Sensor interfacing
+* Motor control
+* PWM
+* I2C communication
+* Keypad scanning
+* User-interface feedback
+* State-based control logic
+* Password authentication
+* Basic fault and obstacle handling
 
-- The password is currently stored directly in firmware source code.
-- No cryptographic authentication is implemented.
-- No secure credential storage is used.
-- The alarm/lockdown behavior is software-based.
-
-### Control
-
-- The controller is single-threaded.
-- Some operations use blocking `delay()` calls.
-- A blocking operation temporarily prevents the main loop from processing new events.
-
-### Sensors
-
-- HC-SR04 detection depends on distance, object geometry, placement, and environmental conditions.
-- The ultrasonic sensor is not a certified safety sensor.
-
-### Startup
-
-- The initial software state assumes the door is fully closed.
-- A more robust system should establish the actual physical position during startup.
-
-### Mechanical safety
-
-A real deployment would require additional safety mechanisms such as appropriate emergency-stop hardware, current/overload protection, fail-safe behavior, independent obstacle detection, and mechanical safety measures.
-
----
-
-## 20. Future Improvements
-
-Possible next steps include:
-
-- Replace blocking `delay()` sequences with non-blocking timers.
-- Separate the firmware into multiple source modules.
-- Add startup door-position verification.
-- Improve password storage and authentication security.
-- Add persistent configuration for system parameters.
-- Add more robust obstacle detection.
-- Introduce explicit fault states for sensor or actuator failures.
-- Add motor-current or stall detection.
-- Improve event handling so safety inputs can be processed during user-interface operations.
-- Add automated tests for the state-transition logic.
-
----
-
-## 21. Demonstration Scenarios
-
-### Scenario A — Automatic opening
-
-```text
-Door closed
-    ↓
-Object approaches
-    ↓
-HC-SR04 detects object
-    ↓
-Door opens
-    ↓
-Open limit reached
-    ↓
-Door remains open while object is detected
-```
-
-### Scenario B — Automatic closing
-
-```text
-Door open
-    ↓
-No object detected
-    ↓
-2 seconds elapsed
-    ↓
-Normal closing
-    ↓
-Close limit reached
-    ↓
-Door closed
-```
-
-### Scenario C — Obstacle during Auto Mode closing
-
-```text
-Door closing
-    ↓
-Obstacle detected
-    ↓
-Emergency brake
-    ↓
-Door reopens
-```
-
-### Scenario D — Password-protected access
-
-```text
-Security Mode
-    ↓
-Press B
-    ↓
-Enter password
-    ↓
-Correct password
-    ↓
-Door opens
-```
-
-### Scenario E — Repeated authentication failure
-
-```text
-Wrong password
-    ↓
-Retry
-    ↓
-Wrong password
-    ↓
-Retry
-    ↓
-Wrong password
-    ↓
-Retry
-    ↓
-4th failure
-    ↓
-Alarm / lockdown sequence
-```
-
-### Scenario F — Switching operating modes
-
-```text
-Press C
-    ↓
-Password authentication
-    ↓
-Correct password
-    ↓
-Mode-switch confirmation
-    |
-    +-- * -> Switch mode
-    |
-    +-- # -> Cancel
-```
-
----
-
-## 22. Summary
-
-This project demonstrates a complete embedded-control loop:
-
-```text
-        HUMAN / ENVIRONMENT
-                |
-        +-------+-------+
-        |               |
-      Keypad          HC-SR04
-        |               |
-        +-------+-------+
-                |
-                v
-        +---------------+
-        |  Arduino UNO  |
-        |               |
-        | State Model   |
-        | Control Logic |
-        +-------+-------+
-                |
-       +--------+--------+
-       |        |        |
-       v        v        v
-     Motor     LCD     Buzzer
-       |
-       v
-      Door
-       |
-       v
- Limit Switches
-       |
-       +-----------> Arduino
-```
-
-The project is fundamentally about **closed-loop embedded control**:
-
-> **Sense the environment → interpret the current state → apply the appropriate control policy → drive the actuator → observe the physical result → transition to the next state.**
-
-Auto Mode demonstrates sensor-driven control and obstacle response. Security Mode demonstrates human interaction, authentication, mode management, timed behavior, and alarm handling.
-
-Together, these mechanisms turn a simple DC motor into a small embedded system with **state, interaction, sensing, decision-making, actuation, and safety-oriented behavior**.
+The project focuses on the relationship between **hardware behavior and firmware logic**, rather than simply demonstrating individual Arduino components.
 
 ---
 
