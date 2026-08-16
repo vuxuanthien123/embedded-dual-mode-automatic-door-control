@@ -11,13 +11,13 @@ This project implements a centralized embedded door-control system built around 
 The controller integrates:
 
 - 4×4 matrix keypad for user input
-- HC-SR04 ultrasonic sensing for object detection
+- HC-SR04 ultrasonic  for object detection
 - TB6612FNG dual H-bridge motor driver
 - DC motor for door actuation
 - Two mechanical limit switches for end-position feedback
 - 16×2 I2C LCD for user-interface feedback
 - Passive buzzer for interaction and safety warnings
-- 9 V / 3 A external supply with LM2596 buck conversion to a 5 V power rail
+- 9 V / 3 A external power supply with LM2596 buck conversion to a regulated 5 V supply distributed across two power rails
 
 The firmware is organized around explicit system states and operating modes instead of a single monolithic control routine.
 
