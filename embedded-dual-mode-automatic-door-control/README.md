@@ -102,7 +102,7 @@ The grounds are shared between the circuits.
 
 ## 4. Hardware Block Diagram
 
-![Hardware block diagram](hardware-block-diagram.png)
+![Hardware block diagram](docs/images/hardware-block-diagram.png)
 
 The block diagram shows the connection between the input devices, Arduino UNO, motor driver, and output devices.
 
@@ -384,7 +384,7 @@ This prevents the motor from continuing to run after the door reaches an end pos
 
 ## 12. System Flowchart
 
-![System flowchart](system-flowchart.png)
+![System flowchart](docs/images/system-flowchart.png)
 
 The flowchart describes the main behavior of the firmware, including:
 
@@ -405,7 +405,7 @@ The implementation is based on repeated execution of the Arduino `loop()` functi
 
 ## 13. Power Architecture
 
-![Power architecture](power-architecture.png)
+![Power architecture](docs/images/power-architecture.png)
 
 The power architecture separates the physical distribution of the 5 V supply into two rails.
 
