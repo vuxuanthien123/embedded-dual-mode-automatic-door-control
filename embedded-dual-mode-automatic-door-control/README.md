@@ -1,4 +1,4 @@
-# Embedded Automatic Door Control and Security System
+# Embedded Dual-Mode Automatic Door Control and Security System
 
 A small embedded-system project built with an **Arduino UNO R3** to control a motorized door in two operating modes:
 
