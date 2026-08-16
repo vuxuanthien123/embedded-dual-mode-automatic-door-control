@@ -535,12 +535,22 @@ These limitations are acceptable for a student project, but they would need to b
 The current project is intentionally kept relatively small:
 
 ```text
-project/
-├── Modified_edition.ino
+embedded-dual-mode-automatic-door-control/
+│
 ├── README.md
-├── hardware-block-diagram.png
-├── power-architecture.png
-└── system-flowchart.png
+├── LICENSE
+├── .gitignore
+│
+├── docs/
+│   └── images/
+│       ├── hardware-block-diagram.png
+│       ├── power-architecture.png
+│       └── system-flowchart.png
+│
+├── firmware/
+│   └── embedded_dual_mode_automatic_door_control_security_system.ino
+│
+└── media/
 ```
 
 The firmware is currently contained in a single Arduino `.ino` file because the project is small enough that splitting it into multiple source modules is not necessary yet.
