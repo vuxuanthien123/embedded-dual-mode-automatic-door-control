@@ -320,7 +320,7 @@ The TB6612FNG provides independent direction and PWM speed control for a DC moto
 
 ### Why use a regulated 5 V rail?
 
-The system is designed around 5 V logic and peripherals. The LM2596 buck converter provides a regulated lower-voltage rail from the external 9 V supply.
+The system is designed around 5 V logic and peripherals. The LM2596 buck converter provides two regulated lower-voltage rails from the external 9 V supply.
 
 ---
 
