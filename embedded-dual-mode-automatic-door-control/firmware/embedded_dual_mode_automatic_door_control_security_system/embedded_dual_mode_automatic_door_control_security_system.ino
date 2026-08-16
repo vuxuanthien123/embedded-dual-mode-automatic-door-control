@@ -68,7 +68,7 @@ enum KEYPAD_ACTION {
 
 // Purpose for which password authentication is being requested.
 enum ENTERING_PURPOSE {
-  OPEN_DOOR,            // Open the door automatically when an object is detected.
+  OPEN_DOOR,            // Request to open the door.
   SWITCH_SYSTEM_MODE,   // Authenticate a request to change the system operating mode.
   NONE                  // No password operation is currently selected.
 };
