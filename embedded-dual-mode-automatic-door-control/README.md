@@ -203,23 +203,7 @@ This separation makes the control logic easier to reason about because operating
 
 The current design uses a single regulated **5 V system rail**, generated from the external 9 V supply through an LM2596 buck converter.
 
-```text
-9 V / 3 A Adapter
-        │
-        ▼
- LM2596 Buck Converter
-        │
-        ▼
-       +5 V
-        │
-   ┌────┼────────────────────────────┐
-   │    │            │               │
-   ▼    ▼            ▼               ▼
- MCU  Sensors       LCD        Motor Driver
-                                      │
-                                      ▼
-                                    Motor
-```
+![Power Architecture](docs/images/power-architecture.png)
 
 The hardware diagram separates the distribution visually into two 5 V power rails. These rails should be understood as **5 V distribution branches**, not independent voltage sources.
 
