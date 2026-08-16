@@ -1049,6 +1049,8 @@ Auto Mode demonstrates sensor-driven control and obstacle response. Security Mod
 
 Together, these mechanisms turn a simple DC motor into a small embedded system with **state, interaction, sensing, decision-making, actuation, and safety-oriented behavior**.
 
+---
+
 ## License
 
 This project is released under the MIT License. See [`LICENSE`](LICENSE).
