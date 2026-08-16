@@ -374,14 +374,11 @@ embedded-dual-mode-automatic-door-control/
 │   ├── control-flow.md
 │   └── images/
 │       ├── hardware-block-diagram.png
+|       ├── power-architecture.png
 │       └── system-flowchart.png
 │
 ├── firmware/
 │   └── embedded_dual_mode_automatic_door_control_security_system.ino
-│
-├── hardware/
-│   ├── schematic/
-│   └── bom/
 │
 └── media/
 ```
@@ -472,7 +469,7 @@ Authentication and alarm handling
         ↓
 Safety and fault-response logic
         ↓
-Documentation and architecture review
+Documentation review and final cleanup
         ↓
 v1.0.0 engineering release
 ```
