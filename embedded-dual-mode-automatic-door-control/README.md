@@ -164,29 +164,45 @@ In Auto Mode, the HC-SR04 is used to detect an object near the door.
 Basic operation:
 
 ```text
-Door closed
-     │
-     ▼
-Object detected?
-   │       │
-  No      Yes
-   │       │
-   │       ▼
-   │    Open door
-   │       │
-   │       ▼
-   │   Door fully open
-   │       │
-   │       ▼
-Object still detected?
-   │       │
-  Yes      No
-   │       │
-Reset      ▼
-timer   Wait 2 seconds
-           │
-           ▼
-       Close door
+     Door closed                                    
+         │                                          
+┌──────► │                                          
+│        ▼                                          
+│  Object detected?                                 
+│    |            |                                 
+│   No           Yes                                
+│    │            │                                 
+└────┘            ▼                                 
+               Open door                            
+                  │                                 
+                  ▼                                 
+              Door fully opened                     
+                  │                                 
+                  ▼                                 
+           Object still detected?                   
+              |             |                       
+             Yes           No                       
+              │             │                       
+              ▼             ▼                       
+            Reset         Wait 2                    
+            timer         seconds                   
+              │             │                       
+              ▼             ▼                       
+    Back to "Object      Close door                 
+     detected?"             │                       
+                            ▼                       
+                         Obstacle detected          
+                         while closing?             
+                          |          |              
+                         Yes        No              
+                          │          │              
+                          ▼          ▼              
+                      Stop and     Door fully closed
+                    reopen door       │             
+                         │            │             
+                         └─────┬──────┘             
+                               ▼                    
+                         Back to "Object detected?" 
 ```
 
 The configured detection distance is approximately **17 cm**.
