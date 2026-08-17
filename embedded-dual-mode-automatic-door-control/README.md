@@ -177,19 +177,19 @@ Basic operation:
                   │                                 
                   ▼                                 
               Door fully opened                     
-                  │                                 
-                  ▼                                 
-           Object still detected?                   
-              |             |                       
-             Yes           No                       
-              │             │                       
-              ▼             ▼                       
-            Reset         Wait 2                    
-            timer         seconds                   
-              │             │                       
-              ▼             ▼                       
-    Back to "Object      Close door                 
-     detected?"             │                       
+      ┌─────────► │                                 
+      │           ▼                                 
+      │    Object still detected?                   
+      │       |             |                       
+      │      Yes           No                       
+      │       │             │                       
+      │       ▼             ▼                       
+      │     Reset         Wait 2                    
+      │     timer         seconds                   
+      │       │             │                       
+      └───────┘             ▼                       
+                         Close door                 
+                            │                       
                             ▼                       
                          Obstacle detected          
                          while closing?             
@@ -198,11 +198,7 @@ Basic operation:
                           │          │              
                           ▼          ▼              
                       Stop and     Door fully closed
-                    reopen door       │             
-                         │            │             
-                         └─────┬──────┘             
-                               ▼                    
-                         Back to "Object detected?" 
+                    reopen door                      
 ```
 
 The configured detection distance is approximately **17 cm**.
