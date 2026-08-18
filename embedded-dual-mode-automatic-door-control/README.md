@@ -300,8 +300,6 @@ else {
 }
 ```
 
-This separates authentication from the operation being authorized and allows the same password-verification mechanism to support different control contexts.
-
 Failed authentication attempts produce an audible indication. After repeated failures, the alarm sequence is activated.
 
 ```cpp
