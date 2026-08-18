@@ -89,14 +89,14 @@ Rail 1     Rail 2
 
 The LM2596 converts the 9 V input to approximately 5 V.
 
-The project diagram shows two 5 V power rails. These are **two distribution rails from the same LM2596 output**, not two independent voltage levels.
+The project diagram shows two 5 V power rails. These are **two distribution rails from the same LM2596 output**, not two independent voltage sources.
 
 * **Power rail 1** is mainly used for the TB6612FNG motor-driver supply.
 * **Power rail 2** supplies the Arduino-side peripherals such as the HC-SR04, LCD, and buzzer.
 
 The grounds are shared between the circuits.
 
-> The actual motor supply in this prototype is also derived from the 5 V rail. The suitability of this supply depends on the selected DC motor and its current requirements.
+> **Note**: The actual motor supply in this prototype is also derived from the 5 V rail. The suitability of this supply depends on the selected DC motor and its current requirements.
 
 ---
 
