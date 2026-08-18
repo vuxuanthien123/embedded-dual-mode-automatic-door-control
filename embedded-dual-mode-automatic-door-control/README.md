@@ -244,25 +244,25 @@ The ultrasonic sensor is not continuously used for automatic opening while the d
 
 ## 7. Security Mode Door Closing
 
-After the door has been opened in Security Mode, the system monitors the ultrasonic sensor.
+After the door has been opened in Security Mode, the system monitors the ultrasonic sensor while the door remains **fully open**.
 
-If an object is detected, the door closes normally according to the current control logic.
+If an object is detected, the system immediately starts normal-speed closing.
+If no object is detected for **10 seconds**, the system starts a slow-closing procedure with an audible warning.
 
-If no object is detected for **10 seconds**, the system starts a slow-closing procedure.
+Before closing begins, ultrasonic sensing is **temporarily disabled** so that the closing operation is handled by the door-control logic rather than being repeatedly triggered by automatic object detection.
 
 During slow closing:
 
-* Motor PWM is reduced.
+* Motor PWM is reduced to approximately 90.
 * The buzzer produces a periodic warning.
-* The closed-position limit switch stops the motor when the door reaches the closed position.
+* The closed-position limit switch stops the motor when the door reaches the fully closed position.
+* The warning is disabled when the door reaches the closed position.
 
-The warning pattern is approximately:
+The warning pattern is:
 
-```text
 BEEP → SILENCE → BEEP → SILENCE → ...
-```
 
-Each interval is approximately 500 ms.
+Each sound and silence interval is approximately 500 ms.
 
 ---
 
