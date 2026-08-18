@@ -420,6 +420,7 @@ The flowchart describes the main behavior of the firmware, including:
 * Sensor and actuator control
 * Behavioral-state management using enumerated states
 * Continuous firmware execution through the Arduino loop() function
+
 The implementation is based on repeated execution of the Arduino `loop()` function rather than a separate real-time operating system.
 
 ---
