@@ -335,7 +335,7 @@ enum DOOR_BEHAVIOR {
 };
 ```
 
-This separates different aspects of the system into explicit enumerated states, preventing unrelated behaviors from being mixed together while keeping state-dependent control logic structured, clear, and maintainable.
+This separation prevents unrelated behaviors from being mixed together while keeping state-dependent control logic structured, clear, and maintainable.
 
 The main loop determines the current system mode and transfer control to the appropriate mode-specific routine:
 
