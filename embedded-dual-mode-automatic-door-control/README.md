@@ -468,7 +468,7 @@ Some of the main firmware functions are:
 | `openDoorNormally()`    | Starts or continues normal opening |
 | `closeDoorNormally()`   | Starts or continues normal closing |
 | `closeDoorSlowly()`     | Performs slow closing with audible warning |
-| `emergencyStop()`       | Stops motor motion                 |
+| `emergencyStop()`       | Stops motor motion immediately                |
 | `verifyPassword()`      | Checks the entered password        |
 | `activateAlarm()`       | Runs the alarm sequence            |
 | `confirmModeSwitch()`   | Handles mode-switch confirmation   |
