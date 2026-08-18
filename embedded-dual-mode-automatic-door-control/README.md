@@ -159,7 +159,14 @@ The firmware implements two operating modes.
 
 ### Auto Mode
 
-In Auto Mode, the HC-SR04 is used to detect an object near the door.
+In Auto Mode, the ultrasonic sensor HC-SR04 is used to detect an object near the door.
+
+Ultrasonic sensing is controlled through the `isUltrasonicEnabled` flag:
+```cpp
+bool isUltrasonicEnabled = true;
+```
+
+This flag determines whether ultrasonic measurements are allowed to participate in the automatic door-control logic. In Auto Mode, ultrasonic sensing is **enabled** by default and is used to trigger door opening when any object is detected.
 
 Basic operation:
 
@@ -203,6 +210,13 @@ Basic operation:
 
 The configured detection distance is approximately **17 cm**.
 
+```cpp
+if(0 < distance && distance < 17) {
+    return true;
+}
+```
+
+
 When the door is fully open:
 
 * The timer is reset while an object remains in the detection zone.
@@ -211,7 +225,7 @@ When the door is fully open:
 During normal closing:
 
 * If an object is detected, the motor is stopped.
-* The door is then commanded to open again.
+* The door is then commanded to reopen.
 
 This provides a simple obstacle-response mechanism.
 
