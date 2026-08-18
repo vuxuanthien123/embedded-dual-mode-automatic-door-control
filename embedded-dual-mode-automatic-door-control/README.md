@@ -276,7 +276,43 @@ const char defaultPassword[] = "1234";
 
 The password is not encrypted or hashed.
 
+Password authentication is associated with a specific system operation through an explicit authentication purpose. The firmware distinguishes between requests to open the door and requests to switch the system operating mode.
+
+```cpp
+enum ENTERING_PURPOSE {
+    OPEN_DOOR,
+    SWITCH_SYSTEM_MODE,
+    NONE
+};
+```
+
+After successful authentication, the firmware performs the action in `void verifyPassword()` corresponding to the authenticated purpose rather than treating every successful password entry as the same operation.
+
+```cpp
+if (enteringPurpose == SWITCH_SYSTEM_MODE) {
+    keypadAction = SWITCH_CONFIRMATION;
+    requestConfirm();
+}
+else {
+    if (doorBehavior == CLOSED_COMPLETELY && systemMode == SECURITY_MODE) {
+        openDoorNormally();
+    }
+}
+```
+
+This separates authentication from the operation being authorized and allows the same password-verification mechanism to support different control contexts.
+
 Failed authentication attempts produce an audible indication. After repeated failures, the alarm sequence is activated.
+
+```cpp
+if (attempts < 4) {
+    // Indicate failed authentication.
+}
+else {
+    activateAlarm();
+    attempts = 0;
+}
+```
 
 The alarm:
 
@@ -285,8 +321,7 @@ The alarm:
 * Runs for approximately 10 seconds.
 * Temporarily represents a lockdown state.
 
-This is intended as a simple demonstration of authentication and alarm handling, not as a secure access-control implementation.
-
+This is intended as a simple demonstration of password-based authentication, purpose-dependent access control, and failed-authentication handling with an alarm/lockdown response, rather than a secure access-control implementation for real-world deployment.
 ---
 
 ## 9. Firmware Structure
