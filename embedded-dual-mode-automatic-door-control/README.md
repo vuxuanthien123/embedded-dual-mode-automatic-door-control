@@ -535,7 +535,9 @@ The implementation is based on repeated execution of the Arduino `loop()` functi
 
 ![Power architecture](docs/images/power-architecture.png)
 
-The power architecture separates the physical distribution of the 5 V supply into two rails.
+The 5 V supply is distributed through two separate 5V power rails, with one rail dedicated primarily to the motor-driver side and the other serving the controller and peripheral devices.
+
+The separate power-distribution paths help reduce the impact of motor-related current fluctuations and electrical noise on the controller and peripheral devices.
 
 ### Power rail 1
 
