@@ -169,7 +169,7 @@ bool isUltrasonicEnabled = true;
 
 This flag determines whether ultrasonic measurements are allowed to participate in the automatic door-control logic. In Auto Mode, ultrasonic sensing is **enabled** by default and is used to trigger door opening when any object is detected.
 
-Basic operation:
+Control flow:
 
 ```text
      Door closed                                    
@@ -246,13 +246,6 @@ When the door is fully closed, the keypad provides dedicated function keys for d
 
 A successful password for door access opens the door.
 
-A successful password for a mode change is followed by an additional confirmation:
-
-```text
-*  → Confirm
-#  → Cancel
-```
-
 While the door is fully closed in Security Mode, ultrasonic sensing is **disabled** for automatic door opening; door opening requires successful password authentication through the keypad.
 
 ---
@@ -293,8 +286,59 @@ The warning pattern is:
 Each sound and silence interval is approximately 500 ms.
 
 ---
+## 8. Operating Mode Switching
 
-## 8. Password and Alarm Logic
+The operating mode can be changed through the keypad-based authentication and confirmation process.
+
+In Auto Mode, pressing `C` initiates a request to switch the operating mode. The firmware temporarily disables ultrasonic sensing and enters the password-entry state.
+
+```cpp
+if(key == 'C') {
+    isUltrasonicEnabled = false;
+    enteringPurpose = SWITCH_SYSTEM_MODE;
+    keypadAction = PASSWORD_ENTERING;
+
+    requestPassword();
+}
+```
+
+After successful authentication, the user must explicitly confirm or cancel the change:
+
+```text
+* → Confirm
+# → Cancel
+```
+
+The firmware updates `systemMode` state variable only after confirmation:
+
+```cpp
+if(key == '*') {
+    if(systemMode == AUTO_MODE) {
+        systemMode = SECURITY_MODE;
+    }
+    else {
+        systemMode = AUTO_MODE;
+    }
+}
+```
+
+After the mode switch is completed, the ultrasonic-sensing state is updated to match the newly selected operating mode.
+
+```cpp
+if(systemMode == AUTO_MODE) {
+    isUltrasonicEnabled = true;
+}
+else {
+    isUltrasonicEnabled = false;
+}
+```
+
+
+This creates a **clearly defined** mode-switching sequence rather than allowing the operating mode to change directly from a single keypad input.
+
+---
+
+## 9. Password and Alarm Logic
 
 The current firmware uses a four-digit password stored directly in the source code.
 
@@ -351,7 +395,7 @@ This is intended as a simple demonstration of password-based authentication, pur
 
 ---
 
-## 9. Firmware Structure
+## 10. Firmware Structure
 
 Instead of implementing all behavior in one large routine, the firmware separates several concepts into enumerated states.
 
@@ -412,7 +456,7 @@ else {
 
 ---
 
-## 10. Main Control Functions
+## 11. Main Control Functions
 
 Some of the main firmware functions are:
 
@@ -431,7 +475,7 @@ Some of the main firmware functions are:
 
 ---
 
-## 11. Door Position Feedback
+## 12. Door Position Feedback
 
 Two mechanical limit switches provide feedback about the door's end positions:
 
@@ -456,7 +500,7 @@ This prevents the motor from continuing to run after the door reaches an end pos
 
 ---
 
-## 12. System Flowchart
+## 13. System Flowchart
 
 ![System flowchart](docs/images/system-flowchart.png)
 
@@ -487,7 +531,7 @@ The implementation is based on repeated execution of the Arduino `loop()` functi
 
 ---
 
-## 13. Power Architecture
+## 14. Power Architecture
 
 ![Power architecture](docs/images/power-architecture.png)
 
@@ -525,7 +569,7 @@ Both rails originate from the same LM2596 output and share the system ground.
 
 ---
 
-## 14. Libraries
+## 15. Libraries
 
 The firmware currently uses:
 
@@ -541,7 +585,7 @@ These libraries are used for:
 
 ---
 
-## 15. Running the Project
+## 16. Running the Project
 
 ### Hardware
 
@@ -567,7 +611,7 @@ Connect the components according to the hardware block diagram and verify the fo
 
 ---
 
-## 16. Keypad Layout
+## 17. Keypad Layout
 
 The keypad is configured as follows:
 
@@ -597,7 +641,7 @@ Key functions:
 
 ---
 
-## 17. Current Limitations
+## 18. Current Limitations
 
 This project is a prototype for studying embedded control and does not provide the safety or security features expected from a real automatic door.
 
@@ -616,7 +660,7 @@ These limitations are acceptable for a student project, but they would need to b
 
 ---
 
-## 18. Project Structure
+## 19. Project Structure
 
 The current project is intentionally kept relatively small:
 
@@ -643,7 +687,7 @@ The firmware is currently contained in a single Arduino `.ino` file because the 
 
 ---
 
-## 19. Project Purpose
+## 20. Project Purpose
 
 The main purpose of this project is to practice the design of a small embedded control system by integrating:
 
