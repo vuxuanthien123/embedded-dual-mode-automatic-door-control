@@ -585,18 +585,18 @@ The firmware is currently contained in a single Arduino `.ino` file because the 
 
 The main purpose of this project is to practice the design of a small embedded control system by integrating:
 
-Digital input handling
-Sensor interfacing
-Motor control and PWM
-I2C communication
-Keypad scanning
-User-interface feedback
-State-based control logic
-Operating-mode-dependent system behavior
-Password authentication
-Fault and obstacle handling
-Coordination between multiple hardware peripherals
-Basic consideration of hardware constraints and power requirements
+- Digital input handling
+- Sensor interfacing
+- Motor control and PWM
+- I2C communication
+- Keypad scanning
+- User-interface feedback
+- State-based control logic
+- Operating-mode-dependent system behavior
+- Password authentication
+- Fault and obstacle handling
+- Coordination between multiple hardware peripherals
+- Basic consideration of hardware constraints and power requirements
 
 The project focuses on the relationship between hardware behavior and firmware logic, including how multiple peripherals interact to produce predictable system behavior under both normal and abnormal operating conditions.
 
