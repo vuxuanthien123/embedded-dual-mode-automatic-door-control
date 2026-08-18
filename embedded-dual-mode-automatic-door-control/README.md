@@ -322,6 +322,7 @@ The alarm:
 * Temporarily represents a lockdown state.
 
 This is intended as a simple demonstration of password-based authentication, purpose-dependent access control, and failed-authentication handling with an alarm/lockdown response, rather than a secure access-control implementation for real-world deployment.
+
 ---
 
 ## 9. Firmware Structure
