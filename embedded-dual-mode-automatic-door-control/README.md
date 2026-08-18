@@ -162,6 +162,7 @@ The firmware implements two operating modes.
 In Auto Mode, the ultrasonic sensor HC-SR04 is used to detect an object near the door.
 
 Ultrasonic sensing is controlled through the `isUltrasonicEnabled` flag:
+
 ```cpp
 bool isUltrasonicEnabled = true;
 ```
