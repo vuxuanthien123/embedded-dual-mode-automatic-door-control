@@ -286,7 +286,7 @@ enum ENTERING_PURPOSE {
 };
 ```
 
-After successful authentication, the firmware performs the action in `void verifyPassword()` corresponding to the authenticated purpose rather than treating every successful password entry as the same operation.
+After successful authentication, `verifyPassword()` determines the appropriate next action based on the authentication purpose, allowing the same authentication mechanism to support different system operations.
 
 ```cpp
 if (enteringPurpose == SWITCH_SYSTEM_MODE) {
