@@ -251,6 +251,19 @@ If no object is detected for **10 seconds**, the system starts a slow-closing pr
 
 Before closing begins, ultrasonic sensing is **temporarily disabled** so that the closing operation is handled by the door-control logic rather than being repeatedly triggered by automatic object detection.
 
+```cpp
+if (isObjectDetected() == true) {
+    isUltrasonicEnabled = false;
+    closeDoorNormally();
+}
+else {
+    if (millis() - doorOpenedTime >= 10000) {
+        isUltrasonicEnabled = false;
+        closeDoorSlowly();
+    }
+}
+```
+
 During slow closing:
 
 * Motor PWM is reduced to approximately 90.
