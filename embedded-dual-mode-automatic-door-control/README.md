@@ -400,17 +400,26 @@ This prevents the motor from continuing to run after the door reaches an end pos
 
 The flowchart describes the main behavior of the firmware, including:
 
-* Initial system startup
-* Mode selection
-* Auto Mode object detection
-* Door opening and closing
-* Obstacle handling
-* Security Mode password entry
-* Failed authentication
-* Alarm activation
-* Door access
-* Operating-mode switching
-
+* System initialization and startup
+* Auto Mode operation
+* Object detection and presence monitoring
+* Automatic door opening
+* Fully-open and fully-close door detection
+* Door-open holding and configurable timeout
+* Automatic door closing
+* Obstacle detection during door closing
+* Automatic reopening after obstacle detection
+* Security Mode operation
+* Password authentication
+* Authentication failure handling
+* Failed-attempt tracking and alarm activation
+* Authenticated door access
+* Door opening and closing after successful authentication
+* System-mode switching
+* Timer management and reset
+* Sensor and actuator control
+* Behavioral-state management using enumerated states
+* Continuous firmware execution through the Arduino loop() function
 The implementation is based on repeated execution of the Arduino `loop()` function rather than a separate real-time operating system.
 
 ---
