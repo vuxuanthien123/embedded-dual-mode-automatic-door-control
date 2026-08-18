@@ -273,7 +273,7 @@ During slow closing:
 
 The warning pattern is:
 
-BEEP → SILENCE → BEEP → SILENCE → ...
+`BEEP → SILENCE → BEEP → SILENCE → ...`
 
 Each sound and silence interval is approximately 500 ms.
 
