@@ -488,9 +488,11 @@ Connect the components according to the hardware block diagram and verify the fo
 1. The LM2596 output is adjusted to approximately 5 V.
 2. All circuit grounds are connected correctly.
 3. The limit switches are connected according to the `INPUT_PULLUP` configuration.
-4. The motor driver receives the required supply voltage.
-5. The motor current is within the capability of the power supply and motor driver.
-6. The motor direction matches the physical opening and closing mechanism.
+4. The limit switches must be positioned to prevent the motor from driving the door beyond its intended mechanical limits.
+5. The motor driver receives the required supply voltage.
+6. The motor current is within the capability of the power supply and motor driver.
+7. The motor direction matches the physical opening and closing mechanism.
+8. The motor must be powered by a dedicated power supply to prevent motor current and electrical noise from affecting the other system components.
 
 ### Firmware
 
