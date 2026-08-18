@@ -335,9 +335,9 @@ enum DOOR_BEHAVIOR {
 };
 ```
 
-This makes the main control logic easier to divide between Auto Mode and Security Mode.
+This separates different aspects of the system into explicit enumerated states, preventing unrelated behaviors from being mixed together while keeping state-dependent control logic structured, clear, and maintainable.
 
-The main loop selects the appropriate control routine:
+The main loop determines the current system mode and transfer control to the appropriate mode-specific routine:
 
 ```cpp
 if (systemMode == SECURITY_MODE) {
