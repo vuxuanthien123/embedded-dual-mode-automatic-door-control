@@ -221,13 +221,13 @@ This provides a simple obstacle-response mechanism.
 
 Security Mode requires password authentication for controlled door access.
 
-When the door is fully closed:
+When the door is fully closed, the keypad provides dedicated function keys for different user actions:
 
-* `B` requests door opening.
-* `C` requests a change of operating mode.
+* `B` selects door access authentication.
+* `C` selects system-mode change.
 * The user enters a four-digit password.
-* `D` submits the password.
-* `A` deletes the last entered digit.
+* `D` submits the entered password for verification.
+* `A` deletes the most recently entered digit.
 
 A successful password for door access opens the door.
 
@@ -238,7 +238,7 @@ A successful password for a mode change is followed by an additional confirmatio
 #  → Cancel
 ```
 
-The ultrasonic sensor is not continuously used for automatic opening while the door is closed in Security Mode.
+While the door is fully closed in Security Mode, ultrasonic sensing is **disabled** for automatic door opening; door opening requires successful password authentication through the keypad.
 
 ---
 
