@@ -467,7 +467,7 @@ Some of the main firmware functions are:
 | `isObjectDetected()`    | Measures distance using HC-SR04    |
 | `openDoorNormally()`    | Starts or continues normal opening |
 | `closeDoorNormally()`   | Starts or continues normal closing |
-| `closeDoorSlowly()`     | Performs slow closing with warning |
+| `closeDoorSlowly()`     | Performs slow closing with audible warning |
 | `emergencyStop()`       | Stops motor motion                 |
 | `verifyPassword()`      | Checks the entered password        |
 | `activateAlarm()`       | Runs the alarm sequence            |
