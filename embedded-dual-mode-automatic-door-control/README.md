@@ -34,7 +34,36 @@ The firmware is written in Arduino C++ using the `Keypad` and `LiquidCrystal_I2C
 
 ---
 
-## 2. Hardware Architecture
+## 2. Product Motivation
+
+The idea for this project comes from combining two common types of door systems:
+
+- **Automatic doors**, such as those commonly used at supermarkets and other public entrances, where convenient hands-free access is the primary requirement.
+- **Security-controlled doors**, such as those used in offices, apartment buildings, and restricted areas, where access authentication is more important than automatic opening.
+
+These two types of systems serve different purposes and therefore use different control strategies. Automatic doors prioritize convenience and continuous sensor-based operation, while security-controlled doors prioritize authorized access and controlled operation.
+
+This project explores the idea of combining these two use cases into a single door system with two distinct operating modes:
+
+- **Auto Mode** provides convenient, sensor-driven automatic operation for normal access.
+- **Security Mode** provides password-authenticated access and controlled door operation when access restriction is required.
+
+The two modes are not simply different user interfaces for the same behavior. Each mode applies its own control logic, sensing behavior, and access conditions according to its intended use case.
+
+Combining the two modes into one system provides several advantages:
+
+- A single physical door can support both convenient public access and restricted access without requiring separate door systems.
+- The system can adapt its behavior to different operating contexts rather than using one fixed access strategy.
+- Automatic sensing can be used when convenience is appropriate while being disabled or restricted when controlled access is required.
+- Authentication can be used not only for door access but also to control transitions between operating modes.
+- The same actuator, position feedback, user interface, and control hardware can be shared by both modes while their behavioral logic remains separated.
+- This creates a more integrated control architecture in which different access requirements are handled through explicit operating modes rather than through unrelated conditional behaviors.
+
+The project therefore uses the automatic-door and security-door concepts as a practical basis for exploring how different access requirements can be integrated into a single embedded control system.
+
+---
+
+## 3. Hardware Architecture
 
 The system is divided into three main parts:
 
@@ -68,7 +97,7 @@ The motor driver is controlled by two direction signals and one PWM speed signal
 
 ---
 
-## 3. Power Supply
+## 4. Power Supply
 
 The system uses a **9 V / 3 A external adapter** as the main power source.
 
@@ -100,7 +129,7 @@ The grounds are shared between the circuits.
 
 ---
 
-## 4. Hardware Block Diagram
+## 5. Hardware Block Diagram
 
 ![Hardware block diagram](docs/images/hardware-block-diagram.png)
 
@@ -117,7 +146,7 @@ The Arduino communicates with:
 
 ---
 
-## 5. Arduino Pin Assignment
+## 6. Arduino Pin Assignment
 
 The current firmware uses the following Arduino UNO R3 pins.
 
@@ -153,7 +182,7 @@ Therefore, a pressed switch is read as `LOW`.
 
 ---
 
-## 6. Operating Modes
+## 7. Operating Modes
 
 The firmware implements two operating modes.
 
@@ -250,7 +279,7 @@ While the door is fully closed in Security Mode, ultrasonic sensing is **disable
 
 ---
 
-## 7. Security Mode Door Closing
+## 8. Security Mode Door Closing
 
 After the door has been opened in Security Mode, the system monitors the ultrasonic sensor while the door remains **fully open**.
 
@@ -286,7 +315,7 @@ The warning pattern is:
 Each sound and silence interval is approximately 500 ms.
 
 ---
-## 8. Operating Mode Switching
+## 10. Operating Mode Switching
 
 The operating mode can be changed through the keypad-based authentication and confirmation process.
 
@@ -395,7 +424,7 @@ This is intended as a simple demonstration of password-based authentication, pur
 
 ---
 
-## 10. Firmware Structure
+## 11. Firmware Structure
 
 Instead of implementing all behavior in one large routine, the firmware separates several concepts into enumerated states.
 
@@ -456,7 +485,7 @@ else {
 
 ---
 
-## 11. Main Control Functions
+## 12. Main Control Functions
 
 Some of the main firmware functions are:
 
@@ -475,7 +504,7 @@ Some of the main firmware functions are:
 
 ---
 
-## 12. Door Position Feedback
+## 13. Door Position Feedback
 
 Two mechanical limit switches provide feedback about the door's end positions:
 
@@ -500,7 +529,7 @@ This prevents the motor from continuing to run after the door reaches an end pos
 
 ---
 
-## 13. System Flowchart
+## 14. System Flowchart
 
 ![System flowchart](docs/images/system-flowchart.png)
 
@@ -531,7 +560,7 @@ The implementation is based on repeated execution of the Arduino `loop()` functi
 
 ---
 
-## 14. Power Architecture
+## 15. Power Architecture
 
 ![Power architecture](docs/images/power-architecture.png)
 
@@ -571,7 +600,7 @@ Both rails originate from the same LM2596 output and share the system ground.
 
 ---
 
-## 15. Libraries
+## 16. Libraries
 
 The firmware currently uses:
 
@@ -587,7 +616,7 @@ These libraries are used for:
 
 ---
 
-## 16. Running the Project
+## 17. Running the Project
 
 ### Hardware
 
@@ -613,7 +642,7 @@ Connect the components according to the hardware block diagram and verify the fo
 
 ---
 
-## 17. Keypad Layout
+## 18. Keypad Layout
 
 The keypad is configured as follows:
 
@@ -643,7 +672,7 @@ Key functions:
 
 ---
 
-## 18. Current Limitations
+## 19. Current Limitations
 
 This project is a prototype for studying embedded control and does not provide the safety or security features expected from a real automatic door.
 
@@ -662,7 +691,7 @@ These limitations are acceptable for a student project, but they would need to b
 
 ---
 
-## 19. Project Structure
+## 20. Project Structure
 
 The current project is intentionally kept relatively small:
 
@@ -689,7 +718,7 @@ The firmware is currently contained in a single Arduino `.ino` file because the 
 
 ---
 
-## 20. Project Purpose
+## 21. Project Purpose
 
 The main purpose of this project is to practice the design of a small embedded control system by integrating:
 
