@@ -43,20 +43,19 @@ The idea for this project comes from combining two common types of door systems:
 
 These two types of systems serve different purposes and therefore use different control strategies. Automatic doors prioritize convenience and continuous sensor-based operation, while security-controlled doors prioritize authorized access and controlled operation.
 
-This project explores the idea of combining these two use cases into a single door system with two distinct operating modes:
+This project explores the idea of combining these two common types of door systems into a unified system with two distinct operating modes:
 
 - **Auto Mode** provides convenient, sensor-driven automatic operation for normal access.
 - **Security Mode** provides password-authenticated access and controlled door operation when access restriction is required.
 
-The two modes are not simply different user interfaces for the same behavior. Each mode applies its own control logic, sensing behavior, and access conditions according to its intended use case.
+The two modes represent different control behaviors rather than simply different ways of interacting with the system. Each mode has its own control logic, sensing behavior, and access conditions.
 
 Combining the two modes into one system provides several advantages:
 
-- A single physical door can support both convenient public access and restricted access without requiring separate door systems.
-- The system can adapt its behavior to different operating contexts rather than using one fixed access strategy.
+- The system can support both convenient automatic access and controlled authenticated access within a single door system.
 - Automatic sensing can be used when convenience is appropriate while being disabled or restricted when controlled access is required.
-- Authentication can be used not only for door access but also to control transitions between operating modes.
-- The same actuator, position feedback, user interface, and control hardware can be shared by both modes while their behavioral logic remains separated.
+- Authentication is required not only for door access but also for mode switching between operating modes.
+- The same motor, door-position feedback, keypad, LCD, buzzer, and control hardware can be shared by both modes while their behavioral control logic remains separated.
 - This creates a more integrated control architecture in which different access requirements are handled through explicit operating modes rather than through unrelated conditional behaviors.
 
 The project therefore uses the automatic-door and security-door concepts as a practical basis for exploring how different access requirements can be integrated into a single embedded control system.
