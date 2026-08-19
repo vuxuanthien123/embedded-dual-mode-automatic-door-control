@@ -7,7 +7,7 @@ A small embedded-system project built with an **Arduino UNO R3** to control a mo
 
 The system uses an ultrasonic sensor for object detection, mechanical limit switches for door-position feedback, and a TB6612FNG motor driver for DC motor control. A 16×2 I2C LCD and a passive buzzer provide basic user feedback.
 
-This project is developed as an **academic embedded-systems prototype**, focusing on system-level integration, design decisions, and the interaction between sensors, actuators, the microcontroller, and state-based control logic rather than production-level safety or security requirements.
+This project is developed as an **academic embedded-systems prototype**, focusing on system-level integration, design decisions, and the interaction between sensors, the actuator, the microcontroller, and state-based control logic rather than production-level safety or security requirements.
 
 ---
 
