@@ -22,13 +22,13 @@ The main controller is an Arduino UNO R3.
 | Arduino UNO R3               | Main controller                               |
 | 4×4 matrix keypad            | User input and password entry                 |
 | HC-SR04                      | Object detection                              |
-| TB6612FNG                    | DC motor driver                               |
+| TB6612FNG                    | Dual DC motor driver                          |
 | DC motor                     | Door actuation                                |
 | 2× mechanical limit switches | Fully-open and fully-closed position feedback |
-| 16×2 I2C LCD                 | Display system status and messages            |
-| Passive buzzer               | Key feedback, warning, and alarm              |
+| 16×2 I2C LCD                 | Display system mode and messages              |
+| Passive buzzer               | Key feedback, slow-closing warning, and lockdown alarm |
 | 9 V / 3 A adapter            | Main power source                             |
-| LM2596 buck converter        | Converts 9 V input to a 5 V system supply     |
+| LM2596 buck converter        | Converts the 9 V input to a 5 V system supply     |
 
 The firmware is written in Arduino C++ using the `Keypad` and `LiquidCrystal_I2C` libraries.
 
