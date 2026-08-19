@@ -55,7 +55,7 @@ INPUT DEVICES  →  CONTROLLER  →  OUTPUT DEVICES
 
 * Arduino UNO R3
 
-The Arduino reads the sensors and keypad, determines the current system and door states, and generates the required control signals.
+The Arduino reads the sensors, keypad and limit-switch inputs, determines the current system and door states, and generates the required control signals.
 
 ### Output devices
 
@@ -64,7 +64,7 @@ The Arduino reads the sensors and keypad, determines the current system and door
 * 16×2 I2C LCD
 * Passive buzzer
 
-The motor driver is controlled by two direction signals and one PWM speed signal.
+The motor driver is controlled by two direction signals and one PWM speed signal from the Arduino.
 
 ---
 
