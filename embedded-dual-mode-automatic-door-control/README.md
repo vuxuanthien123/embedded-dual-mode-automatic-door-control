@@ -634,12 +634,12 @@ Key functions:
 | Key   | Function                              |
 | ----- | ------------------------------------- |
 | `0–9` | Enter password digits                 |
-| `A`   | Delete last password digit            |
-| `B`   | Request door opening in Security Mode |
+| `A`   | Delete the most recently entered digit |
+| `B`   | Request door opening through access authentication in Security Mode |
 | `C`   | Request operating-mode switch         |
-| `D`   | Submit password                       |
-| `*`   | Confirm mode switch                   |
-| `#`   | Cancel mode switch                    |
+| `D`   | Submit the entered password for verification  |
+| `*`   | Confirm the mode switch               |
+| `#`   | Cancel the mode switch                |
 
 ---
 
