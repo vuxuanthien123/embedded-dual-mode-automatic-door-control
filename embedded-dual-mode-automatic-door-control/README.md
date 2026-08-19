@@ -314,11 +314,13 @@ The warning pattern is:
 Each sound and silence interval is approximately 500 ms.
 
 ---
-## 10. Operating Mode Switching
+## 9. Operating Mode Switching
 
 The operating mode can be changed through the keypad-based authentication and confirmation process.
 
-In Auto Mode, pressing `C` initiates a request to switch the operating mode. The firmware temporarily disables ultrasonic sensing and enters the password-entry state.
+Pressing `C` initiates a request to switch the operating mode.
+
+- In Auto Mode, the firmware temporarily disables ultrasonic sensing and enters the password-entry state.
 
 ```cpp
 if(key == 'C') {
@@ -327,6 +329,20 @@ if(key == 'C') {
     keypadAction = PASSWORD_ENTERING;
 
     requestPassword();
+}
+```
+ - In Security Mode, the firmware enters the password-entry state.
+
+```cpp
+if(key == 'B' || key == 'C') {
+    if(key == 'B') {
+    enteringPurpose = OPEN_DOOR;
+}
+else {
+    enteringPurpose = SWITCH_SYSTEM_MODE;
+}
+    requestPassword();
+    keypadAction = PASSWORD_ENTERING;
 }
 ```
 
@@ -366,7 +382,7 @@ This creates a **clearly defined** mode-switching sequence rather than allowing 
 
 ---
 
-## 9. Password and Alarm Logic
+## 10. Password and Alarm Logic
 
 The current firmware uses a four-digit password stored directly in the source code.
 
