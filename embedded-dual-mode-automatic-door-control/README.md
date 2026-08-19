@@ -7,7 +7,7 @@ A small embedded-system project built with an **Arduino UNO R3** to control a mo
 
 The system uses an ultrasonic sensor for object detection, mechanical limit switches for door-position feedback, and a TB6612FNG motor driver for DC motor control. A 16×2 I2C LCD and a passive buzzer provide basic user feedback.
 
-This project is developed as an **academic embedded-systems prototype**, focusing on system-level integration, design decisions, and the interaction between sensors, actuators, the microcontroller, and firmware state logic rather than production-level safety or security requirements.
+This project is developed as an **academic embedded-systems prototype**, focusing on system-level integration, design decisions, and the interaction between sensors, actuators, the microcontroller, and state-based control logic rather than production-level safety or security requirements.
 
 ---
 
@@ -55,7 +55,7 @@ Combining the two modes into one system provides several advantages:
 - The system can support both convenient automatic access and controlled authenticated access within a single door system.
 - Automatic sensing can be used when convenience is appropriate while being disabled or restricted when controlled access is required.
 - Authentication is required not only for door access but also for mode switching between operating modes.
-- The same motor, door-position feedback, keypad, LCD, buzzer, and control hardware can be shared by both modes while their behavioral control logic remains separated.
+- The same actuator, door-position feedback, keypad, LCD, buzzer, and control hardware can be shared by both modes while their behavioral control logic remains separated.
 - This creates a more integrated control architecture in which different access requirements are handled through explicit operating modes rather than through unrelated conditional behaviors.
 
 The project therefore uses the automatic-door and security-door concepts as a practical basis for exploring how different access requirements can be integrated into a single embedded control system.
