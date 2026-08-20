@@ -12,11 +12,11 @@
  *
  * System overview
  * --------------
- * This project implements an embedded automatic door controller with two
+ * This project implements an embedded door control system with two
  * operating modes:
  *
  *   1. AUTO MODE
- *      - Uses the HC-SR04 to detect approaching objects.
+ *      - Uses the HC-SR04 ultrasonic sensor to detect approaching objects.
  *      - Opens the door automatically when an object is detected.
  *      - Keeps the door open while an object remains in the detection zone.
  *      - Closes the door after the configured absence timeout.
@@ -25,17 +25,19 @@
  *
  *   2. SECURITY MODE
  *      - Requires password authentication for controlled door access.
- *      - Supports authenticated switching between operating modes.
  *      - Uses a timed slow-closing procedure with an audible warning.
  *      - Activates an alarm/lockdown sequence after repeated failed
  *        authentication attempts.
  *
+ *   Both operating modes support authenticated switching between modes.
+ *
  * Architectural principles
  * -------------------------
  * The firmware is organized around explicit system states and enumerations
- * rather than relying on a single monolithic control routine. Door behavior,
- * keypad interaction, authentication purpose, motor direction, and limit-
- * switch status are represented as independent state abstractions.
+ * rather than relying on a single monolithic control routine. Different
+ * aspects of system behavior, including door operation, keypad interaction,
+ * authentication purpose, motor control, and input conditions, are modeled
+ * separately to keep the control logic structured and maintainable.
  *
  * Important note
  * --------------
@@ -50,7 +52,7 @@
 #include <Keypad.h>
 
 // ============================================================================
-// SYSTEM STATE DEFINITIONS
+// STATE DEFINITIONS USING ENUMERATIONS
 // ============================================================================
 
 // Operating mode of the embedded door-control system.
