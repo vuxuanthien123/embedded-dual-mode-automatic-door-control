@@ -55,15 +55,15 @@
 // STATE DEFINITIONS USING ENUMERATIONS
 // ============================================================================
 
-// Operating mode of the embedded door-control system.
+// Operating mode of the embedded door control system.
 enum SYSTEM_MODE {
   AUTO_MODE,      // Fully automatic door operation.
-  SECURITY_MODE   // Password-protected door operation and system-mode management.
+  SECURITY_MODE   // Password-protected door operation and authenticated mode switching.
 };
 
 // Current interaction state of the keypad interface.
 enum KEYPAD_ACTION {
-  KEYPRESS_AWAITING,    // Waiting for the user to select a password-related operation.
+  KEYPRESS_AWAITING,    // Waiting for the user to select a password-protected operation, such as door access in Security Mode or operating-mode switching.
   PASSWORD_ENTERING,    // Accepting password digits from the user.
   SWITCH_CONFIRMATION   // Waiting for confirmation before changing the operating mode.
 };
@@ -85,10 +85,10 @@ enum DOOR_BEHAVIOR {
   EMERGENCY_STOPPED     // Door motion has been stopped before reaching an end position.
 };
 
-// Motor command used by the TB6612FNG driver.
+// Motor control command used by the TB6612FNG driver.
 enum MOTOR_DIRECTION {
-  CLOCK_WISE,
-  COUNTER_CLOCK_WISE,
+  CLOCKWISE,
+  COUNTER_CLOCKWISE,
   BRAKE                 // Stop motor motion immediately.
 };
 
@@ -104,11 +104,11 @@ enum LIMIT_SWITCH_STATE {
 
 void displaySystemMode();                 // Display the current operating mode on the LCD.
 void clearPasswordBuffer();               // Clear the password input buffer and reset its cursor.
-void enterPassword(char);                 // Process a keypad event during password entry.
+void enterPassword(char);                 // Process a keypad input during password entry.
 void requestPassword();                   // Display the password-entry prompt.
 bool isObjectDetected();                  // Measure distance with the HC-SR04 and determine whether an object is present.
 void activateAlarm();                     // Activate the alarm after repeated password-authentication failures.
-void verifyPassword();                    // Validate the entered password against the configured credential.
+void verifyPassword();                    // Validate the entered password against the configured default password.
 void requestConfirm();                    // Display the confirmation prompt for changing the operating mode.
 void confirmModeSwitch(char);             // Process the user's confirmation or cancellation of a mode change.
 void setMotorDirection(MOTOR_DIRECTION);  // Apply the requested motor direction or brake command.
@@ -116,7 +116,7 @@ void emergencyStop();                     // Immediately stop door motion and up
 void openDoorNormally();                  // Open the door at the normal motor speed.
 void closeDoorNormally();                 // Close the door at the normal motor speed.
 void closeDoorSlowly();                   // Close the door slowly while generating an audible warning.
-void keyPressFeedback(char);              // Provide audible feedback for keypad interaction.
+void keyPressFeedback(char);              // Provide audible feedback for a keypad button press.
 void processSecurityMode(char);           // Execute the high-level control logic for Security Mode.
 void processAutoMode(char);               // Execute the high-level control logic for Auto Mode.
 
@@ -133,9 +133,9 @@ const int COLUMN_NUM = 4; // Number of keypad columns.
 
 // Keys used to select the purpose of password authentication:
 // B: Request door access while Security Mode is active.
-// C: Request a change between Auto Mode and Security Mode.
+// C: Request a switch between Auto Mode and Security Mode.
 
-// Keys used to confirm or cancel a system-mode change:
+// Keys used to confirm or cancel a operating-mode change:
 // *: Confirm the mode change.
 // #: Cancel the mode change.
 char keys[ROW_NUM][COLUMN_NUM] = {
@@ -158,7 +158,7 @@ Keypad keypad = Keypad( makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ============================================================================
-// PASSWORD AUTHENTICATION STATE
+// PASSWORD AUTHENTICATION VARIABLES
 // ============================================================================
 
 const char defaultPassword[] = "1234";
@@ -429,12 +429,12 @@ bool isObjectDetected() {
 void setMotorDirection(MOTOR_DIRECTION motorDirection) {
   // Motor direction is defined by the physical installation of the mechanism.
   // Command clockwise motor rotation.
-  if(motorDirection == CLOCK_WISE) {
+  if(motorDirection == CLOCKWISE) {
     digitalWrite(motorInputCtrlPin1, HIGH);
     digitalWrite(motorInputCtrlPin2, LOW);
   }
   // Command counter-clockwise motor rotation.
-  else if (motorDirection == COUNTER_CLOCK_WISE) {
+  else if (motorDirection == COUNTER_CLOCKWISE) {
     digitalWrite(motorInputCtrlPin1, LOW);
     digitalWrite(motorInputCtrlPin2, HIGH);
   }
@@ -469,7 +469,7 @@ void openDoorNormally() {
       // Update the door behavioral state before starting motion.
       doorBehavior = OPENING_NORMALLY;
       
-      setMotorDirection(COUNTER_CLOCK_WISE);
+      setMotorDirection(COUNTER_CLOCKWISE);
       analogWrite(motorSpeedCtrl, 250);
 
       isMotorSpinning = true;
@@ -494,7 +494,7 @@ void closeDoorNormally() {
   if(isMotorSpinning == false) {
       doorBehavior = CLOSING_NORMALLY;
       
-      setMotorDirection(CLOCK_WISE);
+      setMotorDirection(CLOCKWISE);
       analogWrite(motorSpeedCtrl, 250);
 
       isMotorSpinning = true;
@@ -521,7 +521,7 @@ void closeDoorSlowly() {
   if(isMotorSpinning == false) {
       doorBehavior = CLOSING_SLOWLY;
       
-      setMotorDirection(CLOCK_WISE);
+      setMotorDirection(CLOCKWISE);
       analogWrite(motorSpeedCtrl, 90);
 
       isMotorSpinning = true;
