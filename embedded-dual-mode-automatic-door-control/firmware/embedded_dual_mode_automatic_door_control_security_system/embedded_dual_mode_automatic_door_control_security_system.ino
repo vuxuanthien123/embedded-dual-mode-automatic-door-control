@@ -174,8 +174,8 @@ char password[5] = {' ', ' ', ' ', ' ', '\0'};
 const int buzzerSignal = 6;        // PWM-capable output used to drive the passive buzzer.
 
 // HC-SR04 ultrasonic distance sensor.
-const int trigPin = 15;            // Trigger signal
-const int echoPin = 16;            // Echo signal
+const int trigPin = 15;            // Trigger signal.
+const int echoPin = 16;            // Echo signal.
 
 // Limit switch
 const int doorOpenSwitch = 3;       // Limit switch indicating the fully-open door position.
@@ -222,6 +222,7 @@ void clearPasswordBuffer() {
   passwordCursor = 0;
 }
 
+// Process password-entry keypad commands and password digits.
 void enterPassword(char key) {
   if(key == 'A') {
     if(passwordCursor > 0) {
@@ -236,6 +237,8 @@ void enterPassword(char key) {
   }
   else if('0' <= key && key <= '9') {
     if(passwordCursor > 3) return;
+
+    // Store the actual digit while briefly displaying it on the LCD before masking with '*'.
     password[passwordCursor] = key;
     lcd.print(key);
     delay(100);
