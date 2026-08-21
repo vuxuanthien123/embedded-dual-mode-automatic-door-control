@@ -187,23 +187,23 @@ const int motorInputCtrlPin2 = 10;  // Motor direction control input.
 const int motorSpeedCtrl = 5;       // PWM output used to control motor speed.
 
 // ============================================================================
-// RUNTIME SYSTEM STATE
+// RUNTIME SYSTEM-STATE INITIALIZATION
 // ============================================================================
 
 SYSTEM_MODE systemMode = AUTO_MODE;               // System starts in Auto Mode.
-KEYPAD_ACTION keypadAction = KEYPRESS_AWAITING;   // Keypad starts in the idle state, waiting for a user command.
+KEYPAD_ACTION keypadAction = KEYPRESS_AWAITING;   // Keypad starts waiting for the user to select an available operation.
 ENTERING_PURPOSE enteringPurpose = NONE;          // No password-related operation is active initially.
-DOOR_BEHAVIOR doorBehavior = CLOSED_COMPLETELY;              // The system assumes the door is initially fully closed.
-bool isMotorSpinning = false;
-bool isSlowClosingWarning = false;    // Indicates whether the slow-closing warning is active.
-bool isWarningBuzzerOn = false;       // Tracks whether the warning buzzer is currently sounding.
-bool isUltrasonicEnabled = true;         // Ultrasonic sensing is enabled by default.
+DOOR_BEHAVIOR doorBehavior = CLOSED_COMPLETELY;   // The system assumes the door is initially fully closed.
+bool isMotorSpinning = false;             // Indicates whether the motor is currently running.
+bool isSlowClosingWarning = false;        // Indicates whether the slow-closing warning is active.
+bool isWarningBuzzerOn = false;           // Tracks whether the warning buzzer is currently sounding.
+bool isUltrasonicEnabled = true;          // Ultrasonic sensing is enabled by default.
 
 // Timing variables used to manage timed state transitions.
-unsigned long motorStartTime = 0;   // Timestamp recorded when motor motion begins.
-unsigned long warningBuzzerOnStartTime = 0; // Timestamp recorded when the warning buzzer starts sounding.
-unsigned long warningBuzzerOffStartTime = 0;  // Timestamp recorded when the warning buzzer stops sounding.
-unsigned long doorOpenedTime = 0;   // Timestamp used to determine how long the door has remained open.
+unsigned long motorStartTime = 0;                 // Timestamp recorded when motor motion begins.
+unsigned long warningBuzzerOnStartTime = 0;       // Timestamp recorded when the warning buzzer starts sounding.
+unsigned long warningBuzzerOffStartTime = 0;      // Timestamp recorded when the warning buzzer stops sounding.
+unsigned long doorOpenedTime = 0;                 // Timestamp used to determine how long the door has remained open.
 
 void displaySystemMode() {
   lcd.setCursor(0, 0);
