@@ -420,7 +420,7 @@ bool isObjectDetected() {
   // Wait for up to 30 ms; pulseIn() returns 0 when no echo is received.
   duration = pulseIn(echoPin, HIGH, 30000);
 
-  // Convert echo duration to distance in centimeters using the speed of sound.
+  // Convert the echo duration to distance in centimeters using the speed of sound.
   distance = duration * 0.034 / 2;
 
   if(0 < distance && distance < 17) {
@@ -430,7 +430,7 @@ bool isObjectDetected() {
 }
 
 void setMotorDirection(MOTOR_DIRECTION motorDirection) {
-  // Motor direction is defined by the physical installation of the mechanism.
+  // Motor direction depends on the physical installation of the mechanism.
   // Command clockwise motor rotation.
   if(motorDirection == CLOCKWISE) {
     digitalWrite(motorInputCtrlPin1, HIGH);
@@ -441,7 +441,7 @@ void setMotorDirection(MOTOR_DIRECTION motorDirection) {
     digitalWrite(motorInputCtrlPin1, LOW);
     digitalWrite(motorInputCtrlPin2, HIGH);
   }
-  // Apply the brake/stop command.
+  // Apply the motor brake command.
   else {
     digitalWrite(motorInputCtrlPin1, LOW);
     digitalWrite(motorInputCtrlPin2, LOW);
