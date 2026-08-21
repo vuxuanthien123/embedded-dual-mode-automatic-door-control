@@ -174,8 +174,8 @@ char password[5] = {' ', ' ', ' ', ' ', '\0'};
 const int buzzerSignal = 6;        // PWM-capable output used to drive the passive buzzer.
 
 // HC-SR04 ultrasonic distance sensor.
-const int trigPin = 15;
-const int echoPin = 16;
+const int trigPin = 15;            // Trigger signal
+const int echoPin = 16;            // Echo signal
 
 // Limit switch
 const int doorOpenSwitch = 3;       // Limit switch indicating the fully-open door position.
@@ -184,7 +184,7 @@ const int doorCloseSwitch = 4;      // Limit switch indicating the fully-closed 
 // TB6612FNG motor-driver control signals.
 const int motorInputCtrlPin1 = 17;  // Motor direction control input.
 const int motorInputCtrlPin2 = 10;  // Motor direction control input.
-const int motorSpeedCtrl = 5;       // PWM input used to control motor speed.
+const int motorSpeedCtrl = 5;       // PWM output used to control motor speed.
 
 // ============================================================================
 // RUNTIME SYSTEM STATE
