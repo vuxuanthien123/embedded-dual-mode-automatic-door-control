@@ -272,11 +272,11 @@ void activateAlarm() {
 }
 
 void confirmModeSwitch(char key) {
-  // Continue only when one of the two confirmation keys is pressed.
+  // Process the mode-switch request only when '*' is pressed for confirmation or '#' is pressed for cancellation.
   if(key == '*' || key == '#') {
     lcd.clear();
 
-    // Confirm the requested system-mode change.
+    // Confirm the requested operating-mode switch.
     if(key == '*') {
       lcd.print("SWITCHING");
       delay(500);
@@ -305,7 +305,7 @@ void confirmModeSwitch(char key) {
       delay(1000);
     }
     
-    // Cancel the requested system-mode change.
+    // Cancel the requested operating-mode switch.
     else {
       lcd.print("SWITCH CANCELLED");
       delay(1000);
@@ -316,20 +316,20 @@ void confirmModeSwitch(char key) {
     
     // Synchronize ultrasonic sensing with the newly selected operating mode.
     if(systemMode == AUTO_MODE) {
-      isUltrasonicEnabled = true; // Auto Mode requires ultrasonic sensing to remain enabled.
+      isUltrasonicEnabled = true;   // Auto Mode requires ultrasonic sensing to remain enabled.
     }
     else {
-      isUltrasonicEnabled = false; // Security Mode disables automatic ultrasonic activation while the door is closed.
+      isUltrasonicEnabled = false;  // Security Mode disables automatic ultrasonic activation while the door is closed.
     }
-    keypadAction = KEYPRESS_AWAITING;  // Return the keypad interface to its idle state.
-    enteringPurpose = NONE;            // Clear the current password-entry purpose.
+    keypadAction = KEYPRESS_AWAITING;   // Return to waiting for the user to select an available operation.
+    enteringPurpose = NONE;             // Clear the current password-entry purpose.
   }
 }
 
 void requestConfirm() {
   lcd.setCursor(0, 0);
   lcd.print("CONFIRM SWITCH  ");
-  delay(1000);
+  delay(1000);     // Allow the user to read the prompt.
 
   lcd.clear();
   delay(500);
@@ -339,7 +339,7 @@ void requestConfirm() {
 }
 
 void verifyPassword() {
-  ++attempts;
+  ++attempts;   // Increment the password-authentication attempt counter.
   
   bool isCorrectPass = true;
   for(int i = 0; i < 4; i++) {
@@ -354,7 +354,7 @@ void verifyPassword() {
   
   if(isCorrectPass) {
     lcd.print("ACCESS GRANTED");
-    attempts = 0;
+    attempts = 0;   // Reset the password-authentication attempt counter.
 
     // Provide positive audible feedback for successful authentication.
     tone(buzzerSignal, 3000);
@@ -362,17 +362,17 @@ void verifyPassword() {
     noTone(buzzerSignal);
     
     if(enteringPurpose == SWITCH_SYSTEM_MODE) {
-      keypadAction = SWITCH_CONFIRMATION; // Transition to mode-change confirmation after successful authentication.
+      keypadAction = SWITCH_CONFIRMATION;   // Transition to mode-switch confirmation after successful authentication.
       requestConfirm();
     }
     else {
-      // In Security Mode, a valid password may open a fully closed door.
+      // In Security Mode, a valid password may open the fully closed door.
       if(doorBehavior == CLOSED_COMPLETELY && systemMode == SECURITY_MODE) {
         openDoorNormally();
       }
 
-      keypadAction = KEYPRESS_AWAITING;   // Return the keypad interface to its idle state.
-      enteringPurpose = NONE;             // Clear the current password-entry purpose.
+      keypadAction = KEYPRESS_AWAITING;     // Return to waiting for the user to select an available operation.
+      enteringPurpose = NONE;               // Clear the current password-entry purpose.
     }
   }
   else {
@@ -388,12 +388,12 @@ void verifyPassword() {
       }
     }
     else {
-      activateAlarm();	// Start the alarm/lockdown sequence after repeated failed attempts.
-      attempts = 0;		// Reset the failed-attempt counter after the alarm sequence.
+      activateAlarm();  // Start the alarm/lockdown sequence after repeated failed attempts.
+      attempts = 0;	    // Reset the password-authentication attempt counter after the alarm sequence.
     }
 
-    keypadAction = PASSWORD_ENTERING;
-    requestPassword();	// Prompt the user to enter the password again.
+    keypadAction = PASSWORD_ENTERING;  // Return to the password-entry state after the alarm/lockdown sequence.
+    requestPassword();	               // Prompt the user to enter the password again.
   }
 }
 
