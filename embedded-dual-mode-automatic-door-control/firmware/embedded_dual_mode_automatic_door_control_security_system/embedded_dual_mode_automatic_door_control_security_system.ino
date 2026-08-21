@@ -598,8 +598,7 @@ void keyPressFeedback(char key) {
 }
 
 // ============================================================================
-// Security Mode: password-protected access and controlled mode management.
-// CONTROL LOGIC
+// Security Mode control logic: password-protected access and controlled mode management.
 // ============================================================================
 void processSecurityMode(char key) {
   switch(doorBehavior) {
@@ -667,8 +666,7 @@ void processSecurityMode(char key) {
 }
 
 // ============================================================================
-// Auto Mode: sensor-driven automatic door operation.
-// CONTROL LOGIC
+// Auto Mode control logic: sensor-driven automatic door operation.
 // ============================================================================
 void processAutoMode(char key) {
   switch(doorBehavior) {
@@ -685,52 +683,54 @@ void processAutoMode(char key) {
       }
       break;
     case OPENING_NORMALLY:
-      openDoorNormally(); // Continue the current opening motion.
+      openDoorNormally();
       break;
     case CLOSING_NORMALLY:
       if(isObjectDetected() == true) {
-        emergencyStop();    // Stop immediately when an obstacle is detected during closing.
-        openDoorNormally(); // Re-open the door after the emergency stop.
+        // Stop and re-open the door when an obstacle is detected during closing.
+        emergencyStop();
+        openDoorNormally();
       }
       else {
-        closeDoorNormally();  // Continue normal-speed closing.
+        closeDoorNormally();
       }
       break;
     case CLOSED_COMPLETELY:
       if(isUltrasonicEnabled == true) {
         if(isObjectDetected() == true) {
-          openDoorNormally(); // Open the door automatically when an object is detected.
+          openDoorNormally();
         }
         else {
-          // When the door is fully closed, allow the user to request a system-mode change.
+          // When the door is fully closed, allow the user to request an operating-mode switch.
           if(keypadAction == KEYPRESS_AWAITING) {
             if(key) {
               keyPressFeedback(key);  // Provide immediate audible feedback for keypad input.
 
+              // C requests password authentication for a operating-mode switch.
               if(key == 'C') {
-                isUltrasonicEnabled = false;   // Temporarily disable ultrasonic sensing so keypad mode-switch confirmation can proceed.
+                // Temporarily disable ultrasonic sensing to allow keypad-based mode switching to proceed.
+                isUltrasonicEnabled = false;
                 enteringPurpose = SWITCH_SYSTEM_MODE;
                 keypadAction = PASSWORD_ENTERING;
 
-                requestPassword();  // Display the password-entry prompt.
+                requestPassword();    // Display the password-entry prompt.
               }
             }
           }
         }
       }
-      // Ultrasonic sensing is temporarily disabled so keypad interaction can proceed
-// without competing with automatic door detection.
       else {
-        // Process the authenticated request to change the operating mode.
+        // Process keypad input throughout the mode-switch request flow.
         if(key && enteringPurpose == SWITCH_SYSTEM_MODE) {
-          keyPressFeedback(key);  // Provide immediate audible feedback for keypad input.
+          keyPressFeedback(key);
 
           switch(keypadAction) {
-            // Accept password input for the mode-change request.
+            // Accept password input and process requested commands.
             case PASSWORD_ENTERING:
               enterPassword(key);
               break;
-                      
+            
+            // Process keypad input for mode-switch confirmation or cancellation.
             case SWITCH_CONFIRMATION:
               confirmModeSwitch(key);
               break;
