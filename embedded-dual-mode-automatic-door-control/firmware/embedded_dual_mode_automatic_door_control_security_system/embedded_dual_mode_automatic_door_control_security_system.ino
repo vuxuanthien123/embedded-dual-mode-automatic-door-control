@@ -64,7 +64,7 @@ enum SYSTEM_MODE {
 // Current interaction state of the keypad interface.
 enum KEYPAD_ACTION {
   KEYPRESS_AWAITING,    // Waiting for the user to select a password-protected operation, such as door access in Security Mode or operating-mode switching.
-  PASSWORD_ENTERING,    // Accepting password digits from the user.
+  PASSWORD_ENTERING,    // Accepting password input and processing commands for the requested operation.
   SWITCH_CONFIRMATION   // Waiting for confirmation before changing the operating mode.
 };
 
@@ -598,27 +598,30 @@ void keyPressFeedback(char key) {
 }
 
 // ============================================================================
-// Security Mode: password-protected access and controlled mode management. CONTROL LOGIC
+// Security Mode: password-protected access and controlled mode management.
+// CONTROL LOGIC
 // ============================================================================
 void processSecurityMode(char key) {
   switch(doorBehavior) {
     case OPENED_COMPLETELY:
       if(isUltrasonicEnabled == true) {
-        // Close immediately when an object is detected.
+        // Begin normal-speed closing when an object is detected.
         if(isObjectDetected() == true) {
-          isUltrasonicEnabled = false; // Temporarily disable ultrasonic sensing while the door is moving.
-          closeDoorNormally();      // Continue with normal-speed closing.
+          // Temporarily disable ultrasonic sensing before starting door movement.
+          isUltrasonicEnabled = false;
+          closeDoorNormally();
         }
         else {
           // If no object is detected for 10 seconds, begin slow closing with an audible warning.
           if(millis() - doorOpenedTime >= 10000) {
-            isUltrasonicEnabled = false; // Temporarily disable ultrasonic sensing while the door is moving.
-            closeDoorSlowly();        // Close slowly while generating the audible warning.
+            // Temporarily disable ultrasonic sensing before starting door movement.
+            isUltrasonicEnabled = false;
+            closeDoorSlowly();
           }
         }
       }
       else {
-        isUltrasonicEnabled = true; // Re-enable ultrasonic sensing.
+        isUltrasonicEnabled = true;  // Re-enable ultrasonic sensing.
       }
       break;
     case OPENING_NORMALLY:
@@ -632,12 +635,12 @@ void processSecurityMode(char key) {
       break;
     case CLOSED_COMPLETELY:
       if(key) {
-        keyPressFeedback(key);  // Provide immediate audible feedback for keypad input.
+        keyPressFeedback(key);  // Provide immediate audible feedback for a keypad button press.
 
         switch(keypadAction) {
           case KEYPRESS_AWAITING:
-            // B: authenticate a request to open the door.
-            // C: authenticate a request to change the operating mode.
+            // B: Request password authentication for door access.
+            // C: Request password authentication for an operating-mode change.
             if(key == 'B' || key == 'C') {
               if(key == 'B') {
                 enteringPurpose = OPEN_DOOR;
@@ -645,8 +648,8 @@ void processSecurityMode(char key) {
               else {
                 enteringPurpose = SWITCH_SYSTEM_MODE;
               }
-              requestPassword();            // Display the password-entry prompt.
-              keypadAction = PASSWORD_ENTERING; // Transition the keypad interface into password-entry mode.
+              keypadAction = PASSWORD_ENTERING;   // Transition the keypad interface to the password-entry state.
+              requestPassword();                  // Display the password-entry prompt.
             }
             break;
 
@@ -664,7 +667,8 @@ void processSecurityMode(char key) {
 }
 
 // ============================================================================
-// Auto Mode: sensor-driven automatic door operation. CONTROL LOGIC
+// Auto Mode: sensor-driven automatic door operation.
+// CONTROL LOGIC
 // ============================================================================
 void processAutoMode(char key) {
   switch(doorBehavior) {
