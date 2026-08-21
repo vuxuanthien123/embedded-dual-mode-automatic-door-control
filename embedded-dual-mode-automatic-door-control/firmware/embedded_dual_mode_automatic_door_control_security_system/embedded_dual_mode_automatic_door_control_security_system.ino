@@ -57,8 +57,8 @@
 
 // Operating mode of the embedded door control system.
 enum SYSTEM_MODE {
-  AUTO_MODE,      // Fully automatic door operation.
-  SECURITY_MODE   // Password-protected door operation and authenticated mode switching.
+  AUTO_MODE,          // Fully automatic door operation.
+  SECURITY_MODE       // Password-protected door operation and authenticated mode switching.
 };
 
 // Current interaction state of the keypad interface.
