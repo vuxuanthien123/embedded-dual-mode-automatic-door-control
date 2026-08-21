@@ -474,7 +474,7 @@ void openDoorNormally() {
       doorBehavior = OPENING_NORMALLY;    // Update the door behavioral state before starting the opening motion.
       
       setMotorDirection(COUNTER_CLOCKWISE);
-      analogWrite(motorSpeedCtrl, 250);   // Drive the motor at the normal speed.
+      analogWrite(motorSpeedCtrl, 250);   // Drive the motor at normal speed.
 
       isMotorSpinning = true;
       motorStartTime = millis();     // Record the start time of the opening motion.
@@ -502,7 +502,7 @@ void closeDoorNormally() {
       doorBehavior = CLOSING_NORMALLY;    // Update the door behavioral state before starting the closing motion.
       
       setMotorDirection(CLOCKWISE);
-      analogWrite(motorSpeedCtrl, 250);   // Drive the motor at the normal speed.
+      analogWrite(motorSpeedCtrl, 250);   // Drive the motor at normal speed.
 
       isMotorSpinning = true;
       motorStartTime = millis();     // Record the start time of the closing motion.
@@ -519,9 +519,9 @@ void closeDoorNormally() {
 }
 
 void closeDoorSlowly() {
-  // Close the door at reduced speed while issuing a warning after the configured
-// Security Mode timeout has elapsed without detecting an object.
-  // Warning pattern: BEEP -> SILENCE -> BEEP -> SILENCE.
+  // Close the door at reduced speed while issuing a periodic warning.
+  // This procedure is initiated after the configured Security Mode timeout expires without object detection.
+  // Warning pattern: BEEP -> SILENCE -> BEEP -> SILENCE -> ...
 
   LIMIT_SWITCH_STATE doorOpenSwitState =
     (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
@@ -529,25 +529,27 @@ void closeDoorSlowly() {
     (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
 
   if(isMotorSpinning == false) {
+      // Start slow closing and activate the warning buzzer.
       doorBehavior = CLOSING_SLOWLY;
       
       setMotorDirection(CLOCKWISE);
-      analogWrite(motorSpeedCtrl, 90);
+      analogWrite(motorSpeedCtrl, 90);  // Drive the motor at reduced speed.
 
       isMotorSpinning = true;
-      motorStartTime = millis(); // Record the start time of the closing motion.
+      motorStartTime = millis();        // Record the start time of the closing motion.
 
-      isSlowClosingWarning = true;               // Enable the slow-closing warning.
+      isSlowClosingWarning = true;      // Enable the slow-closing warning.
 
-      warningBuzzerOnStartTime = millis();       // Record the beginning of the warning-buzzer interval.
+      warningBuzzerOnStartTime = millis();   // Record the beginning of the warning-buzzer interval.
       tone(buzzerSignal, 2700);
-      isWarningBuzzerOn = true;                  // Warning buzzer is currently active.
+      isWarningBuzzerOn = true;              // Warning buzzer is currently active.
   }
   else {
+    // Stop the motor and transition the door to the fully-closed state when the close limit switch is pressed
     if(doorOpenSwitState == IS_NOT_PRESSED && doorCloseSwitState == IS_PRESSED) {
       setMotorDirection(BRAKE);
       analogWrite(motorSpeedCtrl, 0);
-      isMotorSpinning = false;          // The closed limit has been reached; stop the motor and update the state.
+      isMotorSpinning = false;
       doorBehavior = CLOSED_COMPLETELY;
       
       isSlowClosingWarning = false;     // Disable the slow-closing warning.
@@ -561,7 +563,7 @@ void closeDoorSlowly() {
       if(millis() - warningBuzzerOnStartTime >= 500) {
         noTone(buzzerSignal);
         warningBuzzerOffStartTime = millis(); // Record the beginning of the silent interval.
-        isWarningBuzzerOn = false;            // Warning buzzer is currently silent.
+        isWarningBuzzerOn = false;            // Indicate that the warning buzzer is inactive.
       }
       else {
         // Maintain the current warning-buzzer interval.
@@ -572,14 +574,14 @@ void closeDoorSlowly() {
       if(millis() - warningBuzzerOffStartTime >= 500) {
         tone(buzzerSignal, 2700);
         warningBuzzerOnStartTime = millis();  // Record the beginning of the new warning-buzzer interval.
-        isWarningBuzzerOn = true;             // Restart the warning buzzer.
+        isWarningBuzzerOn = true;             // Indicate that the warning buzzer is active.
       }
       else {
         // Maintain the current silent interval.
       }
     }
   }
-  // Ensure the buzzer remains silent when the warning is disabled.
+  // Ensure the buzzer is completely silenced when the slow-closing warning is disabled.
   else {
     noTone(buzzerSignal);
     isWarningBuzzerOn = false;  // Warning buzzer is fully disabled.
@@ -587,6 +589,7 @@ void closeDoorSlowly() {
 }
 
 void keyPressFeedback(char key) {
+  // Skip the default keypress feedback for D
   if(key != 'D') {
     tone(buzzerSignal, 3000);
     delay(100);
