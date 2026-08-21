@@ -787,23 +787,17 @@ void setup(){
 }
 
 void loop(){  
-  // Show the current system mode whenever the keypad is idle.
+  // Show the current system operating mode whenever the keypad is awaiting a user request.
   if(keypadAction == KEYPRESS_AWAITING) {
     displaySystemMode();
   }
 
   char key = keypad.getKey();
 
-  // The controller implements two operating modes: Auto Mode and Security Mode.
-  // Each mode applies its own control rules to door motion, sensing, and user interaction.
-  // Security Mode: password-protected access and controlled mode management.
   if(systemMode == SECURITY_MODE) {
-    // Execute the Security Mode control state machine.
     processSecurityMode(key);
   }
-  // Auto Mode: sensor-driven automatic door operation.
   else {
-    // Execute the Auto Mode control state machine.
     processAutoMode(key);
   }
 }
