@@ -267,7 +267,7 @@ Security Mode requires password authentication for controlled door access.
 When the door is fully closed, the keypad provides dedicated function keys for different user actions:
 
 * `B` selects door access authentication.
-* `C` selects system-mode change.
+* `C` selects operating-mode change.
 * The user enters a four-digit password.
 * `D` submits the entered password for verification.
 * `A` deletes the most recently entered digit.
