@@ -458,56 +458,61 @@ void emergencyStop() {
     isSlowClosingWarning = false;   // Disable the slow-closing warning when motion is interrupted.
   }
 
-  // Record an intermediate stop as an emergency-stopped door state.
+  // Transition to the emergency-stopped state when door motion is interrupted.
   if(doorBehavior == OPENING_NORMALLY || doorBehavior == CLOSING_NORMALLY || doorBehavior == CLOSING_SLOWLY) {
     doorBehavior = EMERGENCY_STOPPED;
   }
 }
 
 void openDoorNormally() {
-  LIMIT_SWITCH_STATE doorOpenSwitState = (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
-  LIMIT_SWITCH_STATE doorCloseSwitState = (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
+  LIMIT_SWITCH_STATE doorOpenSwitState =
+    (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
+  LIMIT_SWITCH_STATE doorCloseSwitState =
+    (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
 
   if(isMotorSpinning == false) {
-      // Update the door behavioral state before starting motion.
-      doorBehavior = OPENING_NORMALLY;
+      doorBehavior = OPENING_NORMALLY;    // Update the door behavioral state before starting the opening motion.
       
       setMotorDirection(COUNTER_CLOCKWISE);
-      analogWrite(motorSpeedCtrl, 250);
+      analogWrite(motorSpeedCtrl, 250);   // Drive the motor at the normal speed.
 
       isMotorSpinning = true;
-      motorStartTime = millis(); // Record the start time of the opening motion.
+      motorStartTime = millis();     // Record the start time of the opening motion.
   }
   else {
+    // Stop the motor and transition the door to the fully-open state when the open limit switch is pressed
     if(doorOpenSwitState == IS_PRESSED && doorCloseSwitState == IS_NOT_PRESSED) {
       setMotorDirection(BRAKE);
       analogWrite(motorSpeedCtrl, 0);
-      isMotorSpinning = false;    // The open limit has been reached; stop the motor and update the state.
+      isMotorSpinning = false;
       doorBehavior = OPENED_COMPLETELY;
 
-      doorOpenedTime = millis();  // Record when the door entered the fully-open state.
+      doorOpenedTime = millis();     // Record when the door entered the fully-open state.
     }
   }
 }
 
 void closeDoorNormally() {
-  LIMIT_SWITCH_STATE doorOpenSwitState = (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
-  LIMIT_SWITCH_STATE doorCloseSwitState = (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
+  LIMIT_SWITCH_STATE doorOpenSwitState =
+    (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
+  LIMIT_SWITCH_STATE doorCloseSwitState =
+    (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
 
   if(isMotorSpinning == false) {
-      doorBehavior = CLOSING_NORMALLY;
+      doorBehavior = CLOSING_NORMALLY;    // Update the door behavioral state before starting the closing motion.
       
       setMotorDirection(CLOCKWISE);
-      analogWrite(motorSpeedCtrl, 250);
+      analogWrite(motorSpeedCtrl, 250);   // Drive the motor at the normal speed.
 
       isMotorSpinning = true;
-      motorStartTime = millis(); // Record the start time of the closing motion.
+      motorStartTime = millis();     // Record the start time of the closing motion.
   }
   else {
+    // Stop the motor and transition the door to the fully-closed state when the close limit switch is pressed
     if(doorOpenSwitState == IS_NOT_PRESSED && doorCloseSwitState == IS_PRESSED) {
       setMotorDirection(BRAKE);
       analogWrite(motorSpeedCtrl, 0);
-      isMotorSpinning = false;  // The closed limit has been reached; stop the motor and update the state.
+      isMotorSpinning = false;
       doorBehavior = CLOSED_COMPLETELY;
     }
   }
@@ -518,8 +523,10 @@ void closeDoorSlowly() {
 // Security Mode timeout has elapsed without detecting an object.
   // Warning pattern: BEEP -> SILENCE -> BEEP -> SILENCE.
 
-  LIMIT_SWITCH_STATE doorOpenSwitState = (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
-  LIMIT_SWITCH_STATE doorCloseSwitState = (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
+  LIMIT_SWITCH_STATE doorOpenSwitState =
+    (digitalRead(doorOpenSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
+  LIMIT_SWITCH_STATE doorCloseSwitState =
+    (digitalRead(doorCloseSwitch) == LOW) ? IS_PRESSED : IS_NOT_PRESSED;
 
   if(isMotorSpinning == false) {
       doorBehavior = CLOSING_SLOWLY;
