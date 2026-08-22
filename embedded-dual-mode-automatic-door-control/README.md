@@ -267,7 +267,7 @@ Security Mode requires password authentication for controlled door access.
 When the door is fully closed, the keypad provides dedicated function keys for different user actions:
 
 * `B` selects door access authentication.
-* `C` selects operating-mode change.
+* `C` selects authenticated operating-mode switch.
 * The user enters a four-digit password.
 * `D` submits the entered password for verification.
 * `A` deletes the most recently entered digit.
@@ -565,7 +565,7 @@ The flowchart describes the main behavior of the firmware, including:
 * Failed-attempt tracking and alarm activation
 * Authenticated door access
 * Door opening and closing after successful authentication
-* System-mode switching
+* Operating-mode switching
 * Timer management and reset
 * Sensor and actuator control
 * Behavioral-state management using enumerated states
@@ -679,8 +679,8 @@ Key functions:
 | ----- | ------------------------------------- |
 | `0–9` | Enter password digits                 |
 | `A`   | Delete the most recently entered digit |
-| `B`   | Request door opening through access authentication in Security Mode |
-| `C`   | Request operating-mode switch         |
+| `B`   | Request door access through authentication in Security Mode |
+| `C`   | Request operating-mode switch through authentication        |
 | `D`   | Submit the entered password for verification  |
 | `*`   | Confirm the mode switch               |
 | `#`   | Cancel the mode switch                |
