@@ -132,7 +132,7 @@ The grounds are shared between the circuits.
 
 ![Hardware block diagram](docs/images/hardware-block-diagram.png)
 
-The block diagram shows the connection between the input devices, Arduino UNO, motor driver, and output devices.
+The block diagram shows the connection between the input devices, Arduino UNO, and output devices.
 
 The Arduino communicates with:
 
